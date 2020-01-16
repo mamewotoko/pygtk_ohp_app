@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #  Copyright (c) 2017 Kurt Jacobson
 #  License: https://kcj.mit-license.org/@2017
@@ -23,7 +23,7 @@ class TransparentWindow(Gtk.Window):
 
         self.connect('destroy', Gtk.main_quit)
         # self.connect('draw', self.draw)
-
+        self.button_pressed = False
         screen = self.get_screen()
         visual = screen.get_rgba_visual()
         if visual and screen.is_composited():
@@ -31,43 +31,59 @@ class TransparentWindow(Gtk.Window):
 
         self.darea = Gtk.DrawingArea()
         self.darea.connect("draw", self.on_draw)
-        self.darea.set_events(Gdk.EventMask.BUTTON_PRESS_MASK)        
+        self.darea.set_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.BUTTON1_MOTION_MASK | Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.add(self.darea)
-        
+
+        self.lines = []
         self.coords = []
-                     
+
         self.darea.connect("button-press-event", self.on_button_press)
+        self.darea.connect("button-release-event", self.on_button_release)
+        self.darea.connect("motion-notify-event", self.on_move)
 
         self.set_title("Lines")
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("delete-event", Gtk.main_quit)
         self.set_app_paintable(True)
         self.show_all()
-            
-    def on_draw(self, wid, cr):
-        print('on draw')
-        cr.set_source_rgb(0, 0, 0)
-        cr.set_line_width(1)
-        
-        for i in self.coords:
-            for j in self.coords:
-                
-                cr.move_to(i[0], i[1])
-                cr.line_to(j[0], j[1]) 
-                cr.stroke()
 
-        del self.coords[:]            
-                         
+    def on_draw(self, wid, cr):
+        cr.set_source_rgb(1, 1, 0)
+        cr.set_line_width(2)
+
+        for line in self.lines + [self.coords]:
+            if len(line) < 2:
+                continue
+            start = line[0]
+            cr.move_to(start[0], start[1])
+
+            for p in line[1:]:
+                cr.move_to(start[0], start[1])
+                cr.line_to(p[0], p[1])
+                start = p
+
+            cr.stroke()
+            # cr.close_path()
+
     def on_button_press(self, w, e):
         if e.type == Gdk.EventType.BUTTON_PRESS \
             and e.button == MouseButtons.LEFT_BUTTON:
-            
+
             self.coords.append([e.x, e.y])
+            self.button_pressed = True
+
+    def on_button_release(self, w, e):
+        if e.type == Gdk.EventType.BUTTON_RELEASE \
+            and e.button == MouseButtons.LEFT_BUTTON:
+            self.lines.append(self.coords)
+            self.coords = []
+            self.button_pressed = False
             
-        if e.type == Gdk.EventType.BUTTON_PRESS \
-            and e.button == MouseButtons.RIGHT_BUTTON:
-            
-            self.darea.queue_draw()           
+    def on_move(self, w, e):
+        if self.button_pressed:
+            self.coords.append([e.x, e.y])
+            self.darea.queue_draw()
+
 
 if __name__ == '__main__':
     TransparentWindow()
