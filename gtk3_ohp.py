@@ -9,6 +9,8 @@ gi.require_version('Gtk', '3.0')
 gi.require_version('Gdk', '3.0')
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import GLib
+import signal
 
 
 class MouseButtons:
@@ -19,7 +21,6 @@ class MouseButtons:
 class TransparentWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self)
-        self.set_size_request(1000, 1000)
 
         self.connect('destroy', Gtk.main_quit)
         # self.connect('draw', self.draw)
@@ -28,10 +29,14 @@ class TransparentWindow(Gtk.Window):
         visual = screen.get_rgba_visual()
         if visual and screen.is_composited():
             self.set_visual(visual)
+            
+        self.set_size_request(screen.width(), screen.height()*0.95)
 
         self.darea = Gtk.DrawingArea()
         self.darea.connect("draw", self.on_draw)
-        self.darea.set_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.BUTTON1_MOTION_MASK | Gdk.EventMask.BUTTON_RELEASE_MASK)
+        self.darea.set_events(Gdk.EventMask.BUTTON_PRESS_MASK
+                              | Gdk.EventMask.BUTTON1_MOTION_MASK
+                              | Gdk.EventMask.BUTTON_RELEASE_MASK)
         self.add(self.darea)
 
         self.lines = []
@@ -40,6 +45,7 @@ class TransparentWindow(Gtk.Window):
         self.darea.connect("button-press-event", self.on_button_press)
         self.darea.connect("button-release-event", self.on_button_release)
         self.darea.connect("motion-notify-event", self.on_move)
+        self.connect("key-press-event", self.on_key_press)
 
         self.set_title("Lines")
         self.set_position(Gtk.WindowPosition.CENTER)
@@ -47,9 +53,15 @@ class TransparentWindow(Gtk.Window):
         self.set_app_paintable(True)
         self.show_all()
 
+    def on_key_press(self, wid, event):
+        ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK)
+        if ctrl and event.keyval == Gdk.KEY_z and 0 < len(self.lines):
+            del self.lines[-1]
+            self.darea.queue_draw()           
+        
     def on_draw(self, wid, cr):
-        cr.set_source_rgb(1, 1, 0)
-        cr.set_line_width(2)
+        cr.set_source_rgb(0, 1, 0)
+        cr.set_line_width(5)
 
         for line in self.lines + [self.coords]:
             if len(line) < 2:
@@ -86,5 +98,6 @@ class TransparentWindow(Gtk.Window):
 
 
 if __name__ == '__main__':
+    GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
     TransparentWindow()
     Gtk.main()
