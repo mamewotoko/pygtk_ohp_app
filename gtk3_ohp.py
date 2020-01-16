@@ -29,8 +29,9 @@ class TransparentWindow(Gtk.Window):
         visual = screen.get_rgba_visual()
         if visual and screen.is_composited():
             self.set_visual(visual)
-            
-        self.set_size_request(screen.width(), screen.height()*0.95)
+
+        # TODO use monitor api
+        self.set_size_request(screen.get_width(), screen.get_height()*0.95)
 
         self.darea = Gtk.DrawingArea()
         self.darea.connect("draw", self.on_draw)
@@ -101,3 +102,4 @@ if __name__ == '__main__':
     GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
     TransparentWindow()
     Gtk.main()
+    
