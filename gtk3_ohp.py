@@ -30,6 +30,7 @@ class TransparentWindow(Gtk.Window):
         if visual and screen.is_composited():
             self.set_visual(visual)
 
+        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         # TODO use monitor api
         self.set_size_request(screen.get_width(), screen.get_height()*0.95)
 
@@ -41,7 +42,9 @@ class TransparentWindow(Gtk.Window):
         self.add(self.darea)
 
         self.lines = []
+        self.text = []
         self.coords = []
+        self.last_position = (0, 0)
 
         self.darea.connect("button-press-event", self.on_button_press)
         self.darea.connect("button-release-event", self.on_button_release)
@@ -58,8 +61,15 @@ class TransparentWindow(Gtk.Window):
         ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK)
         if ctrl and event.keyval == Gdk.KEY_z and 0 < len(self.lines):
             del self.lines[-1]
-            self.darea.queue_draw()           
-        
+            self.darea.queue_draw()
+        elif ctrl and event.keyval == Gdk.KEY_v:
+            text = self.clipboard.wait_for_text()
+            print(text)
+            if text is not None:
+                text = text.strip()
+                self.text.append({"position": self.last_position, "text": text})
+            self.darea.queue_draw()
+            
     def on_draw(self, wid, cr):
         cr.set_source_rgb(0, 1, 0)
         cr.set_line_width(5)
@@ -74,14 +84,19 @@ class TransparentWindow(Gtk.Window):
                 cr.move_to(start[0], start[1])
                 cr.line_to(p[0], p[1])
                 start = p
-
             cr.stroke()
-            # cr.close_path()
+
+        cr.set_font_size(20)
+        for text_info in self.text:
+            (x, y) = text_info["position"]
+            text = text_info["text"]
+            cr.move_to(x, y)
+            cr.show_text(text)
 
     def on_button_press(self, w, e):
         if e.type == Gdk.EventType.BUTTON_PRESS \
             and e.button == MouseButtons.LEFT_BUTTON:
-
+            self.last_position = (e.x, e.y)
             self.coords.append([e.x, e.y])
             self.button_pressed = True
 
@@ -89,12 +104,14 @@ class TransparentWindow(Gtk.Window):
         if e.type == Gdk.EventType.BUTTON_RELEASE \
             and e.button == MouseButtons.LEFT_BUTTON:
             self.lines.append(self.coords)
+            self.last_position = (e.x, e.y)
             self.coords = []
             self.button_pressed = False
             
     def on_move(self, w, e):
         if self.button_pressed:
             self.coords.append([e.x, e.y])
+            self.last_position = (e.x, e.y)
             self.darea.queue_draw()
 
 
