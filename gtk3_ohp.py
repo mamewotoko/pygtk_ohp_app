@@ -11,6 +11,8 @@ gi.require_version('Gdk', '3.0')
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
+import os
+import re
 import signal
 
 COMMAND_MASK = 0x10000010
@@ -43,7 +45,9 @@ class TransparentWindow(Gtk.Window):
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         # TODO use monitor api
-        self.set_size_request(screen.get_width(), screen.get_height()*0.95)
+        self.width = screen.get_width()
+        self.height = screen.get_height() * 0.95
+        self.set_size_request(self.width, self.height)
 
         self.darea = Gtk.DrawingArea()
         self.darea.connect("draw", self.on_draw)
@@ -55,6 +59,7 @@ class TransparentWindow(Gtk.Window):
         self.shapes = []
         self.redo_shapes = []
         self.coords = []
+        self.link = []
         self.last_position = (0, 0)
 
         self.darea.connect("button-press-event", self.on_button_press)
@@ -68,6 +73,9 @@ class TransparentWindow(Gtk.Window):
         self.set_app_paintable(True)
         self.show_all()
 
+    def shapes2svg(self):
+        pass
+        
     def on_key_press(self, wid, event):
         ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK) == Gdk.ModifierType.CONTROL_MASK or \
             (event.state & COMMAND_MASK) == COMMAND_MASK
@@ -76,10 +84,19 @@ class TransparentWindow(Gtk.Window):
             self.redo_shapes.append(self.shapes[-1])
             del self.shapes[-1]
             self.darea.queue_draw()
-        if ctrl and event.keyval == Gdk.KEY_y and 0 < len(self.redo_shapes):
+        elif ctrl and event.keyval == Gdk.KEY_y and 0 < len(self.redo_shapes):
             self.shapes.append(self.redo_shapes[-1])
             del self.redo_shapes[-1]
             self.darea.queue_draw()
+        # elif ctrl and event.keyval == Gdk.KEY_s:
+        #     filename = "tmp.png"
+        #     drawable = self.get_window()
+        #     colormap = drawable.get_colormap()
+        #     pixbuf = Gdk.Pixbuf(Gdk.COLORSPACE_RGB, 0, 8, *drawable.get_size())
+        #     pixbuf = pixbuf.get_from_drawable(drawable, colormap,
+        #                                       0, 0, 0, 0,
+        #                                       *drawable.get_size())
+        #     pixbuf.save(filename, 'png')
         elif ctrl and event.keyval == Gdk.KEY_v:
             text = self.clipboard.wait_for_text()
             if text is not None:
@@ -113,16 +130,29 @@ class TransparentWindow(Gtk.Window):
         cr.stroke()
         
     def on_draw(self, wid, cr):
+        print(wid)
         for shape_info in self.shapes:
             shape_type = shape_info["type"]
             if shape_type == "text":
+                # text []()
+                text = shape_info["text"]
+                m = re.match(r"\[(.*)\]\((.*)\)", text)
+                if m is not None:
+                    display_text = m.group(1)
+                    url = m.group(2)
+                else:
+                    display_text = text
+                    url = None
                 cr.set_source_rgb(FG_RED, FG_GREEN, FG_BLUE)
                 cr.set_line_width(LINE_WIDTH)
                 cr.set_font_size(20)
                 (x, y) = shape_info["position"]
-                text = shape_info["text"]
+
                 cr.move_to(x, y)
-                cr.show_text(text)
+                cr.show_text(display_text)
+
+                if url is not None:
+                    self.link.append({"position": [x, y], "url": url})
             elif shape_type == "image":
                 (x, y) = shape_info["position"]
                 pixbuf = shape_info["image"]
@@ -137,10 +167,30 @@ class TransparentWindow(Gtk.Window):
 
         if self.drawing_line:
             self.draw_line(wid, cr, self.coords)
-            
+
+    def link_clicked(self, l, x, y):
+        lx = l["position"][0]
+        ly = l["position"][1]
+        box_size = 20
+        # TODO modify size
+        return lx - box_size <= x and x <= lx + box_size and \
+            ly - box_size <= y and y <= ly + box_size
+
+    def open_link(self, url):
+        os.system("open '%s'" % url)
+    
     def on_button_press(self, w, e):
         if e.type == Gdk.EventType.BUTTON_PRESS \
            and e.button == MouseButtons.LEFT_BUTTON:
+
+            for l in self.link:
+                print("ex. ey %d, %d %d %d" % (e.x, e.y, l["position"][0], l["position"][1]))
+                if self.link_clicked(l, e.x, e.y):
+                    self.open_link(l["url"])
+                    break
+                else:
+                    print("not clicked")
+            
             self.last_position = (e.x, e.y)
             self.coords.append([e.x, e.y])
             self.button_pressed = True
