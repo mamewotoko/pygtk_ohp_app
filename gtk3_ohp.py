@@ -14,6 +14,11 @@ from gi.repository import GLib
 import signal
 
 COMMAND_MASK = 0x10000010
+LINE_WIDTH = 5
+FG_RED = 0
+FG_GREEN = 1
+FG_RED = 0
+
 
 class MouseButtons:
     LEFT_BUTTON = 1
@@ -45,8 +50,6 @@ class TransparentWindow(Gtk.Window):
         self.add(self.darea)
 
         self.shapes = []
-        # self.text = []
-        # self.image = []
         self.coords = []
         self.last_position = (0, 0)
 
@@ -159,10 +162,12 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--red', type=float, default=0.0)
     parser.add_argument('-g', '--green', type=float, default=1.0)
     parser.add_argument('-b', '--blue', type=float, default=0.0)
-    parser.add_argument('-l', '--line-width', type=float, default=0.0)
+    parser.add_argument('-l', '--line-width', type=float, default=4.0)
 
     args = parser.parse_args()
-    (FG_RED, FG_GREEN, FG_BLUE) = (min(1, args.red), min(1, args.green), min(1, args.blue))
+    FG_RED = min(1, args.red)
+    FG_GREEN = min(1, args.green)
+    FG_BLUE = min(1, args.blue)
     LINE_WIDTH = args.line_width
 
     GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
