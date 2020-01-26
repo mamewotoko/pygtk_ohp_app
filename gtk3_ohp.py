@@ -19,6 +19,9 @@ FG_RED = 0
 FG_GREEN = 1
 FG_RED = 0
 
+# Ctrl-z: undo
+# Ctrl-y: redo
+
 
 class MouseButtons:
     LEFT_BUTTON = 1
@@ -50,6 +53,7 @@ class TransparentWindow(Gtk.Window):
         self.add(self.darea)
 
         self.shapes = []
+        self.redo_shapes = []
         self.coords = []
         self.last_position = (0, 0)
 
@@ -69,7 +73,12 @@ class TransparentWindow(Gtk.Window):
             (event.state & COMMAND_MASK) == COMMAND_MASK
 
         if ctrl and event.keyval == Gdk.KEY_z and 0 < len(self.shapes):
+            self.redo_shapes.append(self.shapes[-1])
             del self.shapes[-1]
+            self.darea.queue_draw()
+        if ctrl and event.keyval == Gdk.KEY_y and 0 < len(self.redo_shapes):
+            self.shapes.append(self.redo_shapes[-1])
+            del self.redo_shapes[-1]
             self.darea.queue_draw()
         elif ctrl and event.keyval == Gdk.KEY_v:
             text = self.clipboard.wait_for_text()
