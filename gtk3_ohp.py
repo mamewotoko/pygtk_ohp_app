@@ -130,7 +130,6 @@ class TransparentWindow(Gtk.Window):
         cr.stroke()
         
     def on_draw(self, wid, cr):
-        print(wid)
         for shape_info in self.shapes:
             shape_type = shape_info["type"]
             if shape_type == "text":
@@ -167,7 +166,16 @@ class TransparentWindow(Gtk.Window):
 
         if self.drawing_line:
             self.draw_line(wid, cr, self.coords)
-
+        # draw frame
+        # frame width = 4
+        current = (0, 0)
+        cr.move_to(*current)
+        cr.set_source_rgb(1, 0, 0)
+        cr.set_line_width(4)
+        for point in [(self.width, 0), (self.width, self.height), (0, self.height), (0, 0)]:
+            cr.line_to(*point)
+        cr.stroke()
+            
     def link_clicked(self, l, x, y):
         lx = l["position"][0]
         ly = l["position"][1]
@@ -177,6 +185,7 @@ class TransparentWindow(Gtk.Window):
             ly - box_size <= y and y <= ly + box_size
 
     def open_link(self, url):
+        # mac
         os.system("open '%s'" % url)
     
     def on_button_press(self, w, e):
@@ -190,7 +199,6 @@ class TransparentWindow(Gtk.Window):
                     break
                 else:
                     print("not clicked")
-            
             self.last_position = (e.x, e.y)
             self.coords.append([e.x, e.y])
             self.button_pressed = True
