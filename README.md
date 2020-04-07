@@ -1,4 +1,4 @@
-GTK3でOHPシートのようなアプリ
+GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/mamewotoko/pygtk_ohp_app.svg?branch=master)](https://travis-ci.org/mamewotoko/pygtk_ohp_app)
 =========================
 
 ## デモ
