@@ -7,7 +7,7 @@ if [ "$(uname)" = Darwin ]; then
 elif [ -f /etc/lsb-release ]; then
     # debian, ubuntu
     sudo apt-get update
-    sudo apt-get install -y python3 python3-dev python3-pip libgtk-3-dev
+    sudo apt-get install -y python3 python3-dev python3-pip libgtk-3-dev pycairo
 else
     echo unsupported platform
     exit 1
