@@ -1,0 +1,22 @@
+dist: bionic
+sudo: required
+language: sh
+addons:
+  apt:
+    update: true
+    packages:
+    - xvfb
+    - x11-apps
+    - imagemagick
+    - ffmpeg
+  homebrew:
+    update: true
+    packages: python3
+before_install:
+  - bash -x setup.sh
+script:
+  - ./gtk3_ohp.py
+#  - bash -x ci/shoot.sh
+os:
+  - linux
+  - osx
