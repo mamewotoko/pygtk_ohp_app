@@ -35,7 +35,6 @@ class TransparentWindow(Gtk.Window):
         Gtk.Window.__init__(self)
 
         self.connect('destroy', Gtk.main_quit)
-        # self.connect('draw', self.draw)
         self.button_pressed = False
         self.drawing_line = False
         screen = self.get_screen()
