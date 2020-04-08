@@ -10,6 +10,6 @@ elif [ -f /etc/lsb-release ]; then
     sudo apt-get update
     sudo apt-get install -y python3 python3-dev python3-pip libgtk-3-dev pycairo
 else
-    echo unsupported platform
+    echo unsupported os
     exit 1
 fi
