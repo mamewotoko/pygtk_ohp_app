@@ -3,7 +3,8 @@ set -e
 
 if [ "$(uname)" = Darwin ]; then
     brew update
-    brew install pygobject3 gtk+3
+    brew install pygobject3 gtk+3 python3
+    pip3 install pycairo
 elif [ -f /etc/lsb-release ]; then
     # debian, ubuntu
     sudo apt-get update
