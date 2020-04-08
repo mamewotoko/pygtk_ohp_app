@@ -8,7 +8,9 @@ GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/
 Macの写真アプリの上にアプリを起動して文字を書いてみました。
 
 ## 前提
-* brew, python3がインストールされたMac
+以下のいずれかを準備してください
+
+* brewがインストールされたMac
 * Ubuntu 18.04
 
 ## 使い方
