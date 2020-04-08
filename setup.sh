@@ -11,7 +11,7 @@ if [ "$(uname)" = Darwin ]; then
 elif [ -f /etc/lsb-release ]; then
     # debian, ubuntu
     sudo apt-get update
-    sudo apt-get install -y python3 python3-dev python3-pip libgtk-3-dev python3-setuptool
+    sudo apt-get install -y python3 python3-dev python3-pip libgtk-3-dev python3-setuptools
     pip3 install pycairo
 else
     echo unsupported os
