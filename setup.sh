@@ -5,6 +5,7 @@ if [ "$(uname)" = Darwin ]; then
     brew update
     which python
     python --version
+    brew link --overwrite python
     brew install pygobject3
     brew install gtk+3 pkg-config
     python3 -m pip install wheel pycairo 
