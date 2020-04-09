@@ -10,8 +10,8 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 ## 前提
 以下のいずれかを準備してください
 
-* brewがインストールされたMac
-* Ubuntu 18.04
+* [Homebrew](https://brew.sh/index_ja) がインストールされたMac
+* [Ubuntu 18.04](https://www.ubuntulinux.jp/News/ubuntu1804)
 
 ## 使い方
 ### 準備
