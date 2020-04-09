@@ -15,7 +15,7 @@ addons:
 before_install:
   - bash -x setup.sh
 script:
-  - ./gtk3_ohp.py
+  - ./test.sh
 #  - bash -x ci/shoot.sh
 os:
   - linux
