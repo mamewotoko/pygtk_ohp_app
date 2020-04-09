@@ -7,7 +7,6 @@ if [ "$(uname)" = Darwin ]; then
     gtimeout --preserve-status 10s ./gtk3_ohp.py
     date "+%Y%m%d-%H%H%S"
 elif [ -f /etc/lsb-release ]; then
-    sudo apt install
     date "+%Y%m%d-%H%H%S"
     xvfb-run timeout --preserve-status 10s ./gtk3_ohp.py
     date "+%Y%m%d-%H%H%S"
