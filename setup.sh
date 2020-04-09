@@ -1,9 +1,11 @@
 #! /bin/bash
-set -e
+set -ex
 
 if [ "$(uname)" = Darwin ]; then
     brew update
-    brew reinstall pygobject3 --with-python3
+    which python
+    python --version
+    brew install pygobject3
     brew install gtk+3 pkg-config
     python3 -m pip install wheel pycairo 
 elif [ -f /etc/lsb-release ]; then
