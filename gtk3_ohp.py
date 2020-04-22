@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
+#  Original code
 #  Copyright (c) 2017 Kurt Jacobson
+#  License: https://kcj.mit-license.org/@2017
+
+#  Modified code
+#  Copyright (c) 2020 Takashi Masuyama
 #  License: https://kcj.mit-license.org/@2017
 
 import argparse
@@ -17,7 +22,7 @@ import re
 import signal
 
 COMMAND_MASK = 0x10000010
-LINE_WIDTH = 5
+ctlLINE_WIDTH = 5
 FG_RED = 0
 FG_GREEN = 1
 FG_RED = 0
@@ -25,7 +30,7 @@ FONT_SIZE = 24
 FONT_NAME = None
 # Ctrl-z: undo
 # Ctrl-y: redo
-
+STATUS_BAR_HEIGHT = 30
 
 class MouseButtons:
     LEFT_BUTTON = 1
@@ -46,9 +51,11 @@ class TransparentWindow(Gtk.Window):
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         # TODO use monitor api
+        self.is_fullscreen = True
         self.width = screen.get_width()
-        self.height = screen.get_height() * 0.95
+        self.height = screen.get_height() - STATUS_BAR_HEIGHT
         self.set_size_request(self.width, self.height)
+        self.set_resizable(True)
 
         self.darea = Gtk.DrawingArea()
         self.darea.connect("draw", self.on_draw)
@@ -74,6 +81,26 @@ class TransparentWindow(Gtk.Window):
         self.set_app_paintable(True)
         self.show_all()
 
+    def fullscreen(self):
+        screen = self.get_screen()
+        self.height = screen.get_height() * 0.95
+        self.set_size_request(self.width, self.height)
+        self.resize(self.width, self.height)
+        self.is_fullscreen = True
+
+    def minimize(self):
+        self.height = 10
+        self.set_size_request(self.width, self.height)
+        self.resize(self.width, self.height)
+        self.is_fullscreen = False
+
+    def clear(self):
+        self.shapes = []
+        self.redo_shapes = []
+        self.coords = []
+        self.link = []
+        self.last_position = (0, 0)
+        
     def shapes2svg(self):
         pass
         
@@ -90,6 +117,7 @@ class TransparentWindow(Gtk.Window):
             del self.redo_shapes[-1]
             self.darea.queue_draw()
         # elif ctrl and event.keyval == Gdk.KEY_s:
+        #     # AttributeError: 'GdkQuartzWindow' object has no attribute 'get_colormap'
         #     filename = "tmp.png"
         #     drawable = self.get_window()
         #     colormap = drawable.get_colormap()
@@ -98,6 +126,15 @@ class TransparentWindow(Gtk.Window):
         #                                       0, 0, 0, 0,
         #                                       *drawable.get_size())
         #     pixbuf.save(filename, 'png')
+        elif ctrl and event.keyval == Gdk.KEY_f:
+            # full screen <-> minimize
+            if self.is_fullscreen:
+                self.minimize()
+            else:
+                self.fullscreen()
+        elif ctrl and event.keyval == Gdk.KEY_d:
+            # clear
+            self.clear()
         elif ctrl and event.keyval == Gdk.KEY_v:
             text = self.clipboard.wait_for_text()
             if text is not None:

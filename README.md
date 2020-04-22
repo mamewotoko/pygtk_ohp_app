@@ -40,6 +40,8 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 元に戻す(undo)|Ctrl-z または Command-z
 元に戻した操作のやり直し(redo)|Ctrl-y または Command-y
 コピーした画像、テキストの貼り付け|Ctrl-v または Command-v
+全削除|Ctrl-d または Command-d
+高さを縮める、広げる|Ctrl-f または Command-f
 
 #### 起動時のオプション
 
