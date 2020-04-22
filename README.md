@@ -78,6 +78,14 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
     |             |
     +-------------+
     ```
+* 実行時に出る警告をなくす
+
+    ```
+    ./gtk3_ohp.py:55: DeprecationWarning: Gdk.Screen.get_width is deprecated
+    self.width = screen.get_width()
+    ./gtk3_ohp.py:56: DeprecationWarning: Gdk.Screen.get_height is deprecated
+    self.height = screen.get_height() - STATUS_BAR_HEIGHT
+    ```
 
 ## ライセンス
 
