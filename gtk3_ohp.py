@@ -21,6 +21,7 @@ import platform
 import re
 import signal
 
+APP_TITLE = "Gtk3 OHP"
 COMMAND_MASK = 0x10000010
 ctlLINE_WIDTH = 5
 FG_RED = 0
@@ -75,7 +76,7 @@ class TransparentWindow(Gtk.Window):
         self.darea.connect("motion-notify-event", self.on_move)
         self.connect("key-press-event", self.on_key_press)
 
-        self.set_title("Lines")
+        self.set_title(APP_TITLE)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("delete-event", Gtk.main_quit)
         self.set_app_paintable(True)
@@ -215,7 +216,7 @@ class TransparentWindow(Gtk.Window):
         for point in [(self.width, 0), (self.width, self.height), (0, self.height), (0, 0)]:
             cr.line_to(*point)
         cr.stroke()
-            
+
     def link_clicked(self, l, x, y):
         lx = l["position"][0]
         ly = l["position"][1]
