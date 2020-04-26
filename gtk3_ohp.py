@@ -22,16 +22,33 @@ import re
 import signal
 
 APP_TITLE = "Gtk3 OHP"
+# initial of color name should be different
+COLOR_CONFIG = {'red': "FF0000",
+                'navy': "02075D",
+                'green': "00FF00",
+                'black': "000000",
+                'pink': "FF1493",
+                'yellow': "FFFF00",
+                'murasaki': "A260BF",
+                'white': "FFFFFF",
+                "aqua": "00FFFF",
+                'orange': "FFA500"}
+PEN_WIDTH = [1, 2, 3, 5, 8, 13, 21]
+FRAME_WIDTH = 4
+FRAME_COLOR = (1, 0, 0)
+
 COMMAND_MASK = 0x10000010
-ctlLINE_WIDTH = 5
+LINE_WIDTH = 5
 FG_RED = 0
 FG_GREEN = 1
-FG_RED = 0
+FG_BLUE = 0
 FONT_SIZE = 24
 FONT_NAME = None
 # Ctrl-z: undo
 # Ctrl-y: redo
 STATUS_BAR_HEIGHT = 30
+COLOR_TABLE = None
+
 
 class MouseButtons:
     LEFT_BUTTON = 1
@@ -106,6 +123,11 @@ class TransparentWindow(Gtk.Window):
         pass
         
     def on_key_press(self, wid, event):
+        global FG_RED
+        global FG_GREEN
+        global FG_BLUE
+        global LINE_WIDTH
+
         ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK) == Gdk.ModifierType.CONTROL_MASK or \
             (event.state & COMMAND_MASK) == COMMAND_MASK
 
@@ -142,6 +164,7 @@ class TransparentWindow(Gtk.Window):
                 text = text.strip()
                 self.shapes.append({"position": self.last_position,
                                     "type": "text",
+                                    "color": (FG_RED, FG_GREEN, FG_BLUE),
                                     "text": text})
                 self.darea.queue_draw()
                 return
@@ -152,13 +175,17 @@ class TransparentWindow(Gtk.Window):
                                     "image": image})
                 self.darea.queue_draw()
                 return
-
+        else:
+            color = COLOR_TABLE.get(event.keyval)
+            if color is not None:
+                (FG_RED, FG_GREEN, FG_BLUE) = color
+            if event.keyval in range(ord('1'), ord(str(len(PEN_WIDTH)))+1):
+                LINE_WIDTH = PEN_WIDTH[event.keyval - ord('1')]
+                
     def draw_line(self, wid, cr, points):
         if len(points) < 2:
             return
-        cr.set_source_rgb(FG_RED, FG_GREEN, FG_BLUE)
-        cr.set_line_width(LINE_WIDTH)
-        
+
         start = points[0]
         cr.move_to(start[0], start[1])
 
@@ -181,7 +208,8 @@ class TransparentWindow(Gtk.Window):
                 else:
                     display_text = text
                     url = None
-                cr.set_source_rgb(FG_RED, FG_GREEN, FG_BLUE)
+                color = shape_info["color"]
+                cr.set_source_rgb(*color)
                 cr.set_line_width(LINE_WIDTH)
                 cr.set_font_size(FONT_SIZE)
                 if FONT_NAME is not None:
@@ -201,18 +229,24 @@ class TransparentWindow(Gtk.Window):
                 #cr.fill()
             elif shape_type == "line":
                 points = shape_info["points"]
+                color = shape_info["color"]
+                width = shape_info["width"]
+                cr.set_source_rgb(*color)
+                cr.set_line_width(width)
                 self.draw_line(wid, cr, points)
             else:
                 print("unknown shpae: " + shape_type)
 
         if self.drawing_line:
+            cr.set_source_rgb(FG_RED, FG_GREEN, FG_BLUE)
+            cr.set_line_width(LINE_WIDTH)
+
             self.draw_line(wid, cr, self.coords)
         # draw frame
-        # frame width = 4
         current = (0, 0)
         cr.move_to(*current)
-        cr.set_source_rgb(1, 0, 0)
-        cr.set_line_width(4)
+        cr.set_source_rgb(*FRAME_COLOR)
+        cr.set_line_width(FRAME_WIDTH)
         for point in [(self.width, 0), (self.width, self.height), (0, self.height), (0, 0)]:
             cr.line_to(*point)
         cr.stroke()
@@ -246,11 +280,17 @@ class TransparentWindow(Gtk.Window):
             self.drawing_line = True
 
     def on_button_release(self, w, e):
+        global FG_RED
+        global FG_GREEN
+        global FG_BLUE
+
         if e.type == Gdk.EventType.BUTTON_RELEASE \
            and e.button == MouseButtons.LEFT_BUTTON:
 
             if 1 < len(self.coords):
                 self.shapes.append({"type": "line",
+                                    "color": (FG_RED, FG_GREEN, FG_BLUE),
+                                    "width": LINE_WIDTH,
                                     "points": self.coords})
             self.coords = []
             self.last_position = (e.x, e.y)
@@ -265,6 +305,21 @@ class TransparentWindow(Gtk.Window):
             self.darea.queue_draw()
 
 
+def hex2float(h):
+    (rx, gx, bx) = (h[0:2], h[2:4], h[4:6])
+    return (int(rx, 16)/0xff, int(gx, 16)/0xff, int(bx, 16)/0xff)
+
+
+def make_color_table():
+    result = {} 
+    for (name, color_code) in COLOR_CONFIG.items():
+        keycode = ord(name[0:1].upper())
+        color_tuple = hex2float(color_code)
+        result[keycode] = color_tuple
+
+    return result
+            
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-r', '--red', type=float, default=0.0)
@@ -278,7 +333,6 @@ if __name__ == '__main__':
         FONT_NAME = args.font
     else:
         os_release = platform.system()
-        print(os_release)
         if os_release == "Darwin":
             # TODO: if japanese
             FONT_NAME = "Osaka"
@@ -290,6 +344,7 @@ if __name__ == '__main__':
     FG_GREEN = min(1, args.green)
     FG_BLUE = min(1, args.blue)
     LINE_WIDTH = args.line_width
+    COLOR_TABLE = make_color_table()
 
     GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
     TransparentWindow()
