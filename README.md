@@ -3,7 +3,7 @@ GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/
 
 ## デモ
 
-[![](http://img.youtube.com/vi/iN-biqblD2g/0.jpg)](http://www.youtube.com/watch?v=iN-biqblD2g "家にいよう") <img alt="ubuntu18.04" src="image/ubuntu1804.png" style="width:50%; height: auto;">
+[![](http://img.youtube.com/vi/iN-biqblD2g/0.jpg)](http://www.youtube.com/watch?v=iN-biqblD2g "家にいよう") ![ubuntu18.04](image/ubuntu1804.png) ![ubuntu20.04](image/ubuntu2004.png)
 
 Macの写真アプリの上にアプリを起動して文字を書いてみました。
 
@@ -12,6 +12,7 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 
 * [Homebrew](https://brew.sh/index_ja) がインストールされたMac
 * [Ubuntu 18.04](https://www.ubuntulinux.jp/News/ubuntu1804)
+* [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
 
 ## 使い方
 ### 準備
