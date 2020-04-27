@@ -3,7 +3,7 @@ GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/
 
 ## デモ
 
-[![](http://img.youtube.com/vi/iN-biqblD2g/0.jpg)](http://www.youtube.com/watch?v=iN-biqblD2g "家にいよう")
+[![](http://img.youtube.com/vi/iN-biqblD2g/0.jpg)](http://www.youtube.com/watch?v=iN-biqblD2g "家にいよう") ![ubuntu18.04](image/ubuntu1804.png)
 
 Macの写真アプリの上にアプリを起動して文字を書いてみました。
 
