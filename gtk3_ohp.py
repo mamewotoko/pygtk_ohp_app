@@ -339,7 +339,7 @@ if __name__ == '__main__':
             FONT_NAME = "Osaka"
         elif os_release == "Linux":
             # ubuntu?
-            FONT_NAME = "takao"
+            FONT_NAME = "TakaoGothic"
 
     FG_RED = min(1, args.red)
     FG_GREEN = min(1, args.green)
