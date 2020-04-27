@@ -97,6 +97,7 @@ class TransparentWindow(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("delete-event", Gtk.main_quit)
         self.set_app_paintable(True)
+        self.set_decorated(False)
         self.show_all()
 
     def fullscreen(self):
