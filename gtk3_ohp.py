@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 #  Original code
+#  https://gist.github.com/KurtJacobson/374c8cb83aee4851d39981b9c7e2c22c
 #  Copyright (c) 2017 Kurt Jacobson
 #  License: https://kcj.mit-license.org/@2017
 
 #  Modified code
 #  Copyright (c) 2020 Takashi Masuyama
-#  License: https://kcj.mit-license.org/@2017
 
 import argparse
 import cairo
