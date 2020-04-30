@@ -20,6 +20,7 @@ import os
 import platform
 import re
 import signal
+import svgwrite
 
 APP_TITLE = "Gtk3 OHP"
 # initial of color name should be different
@@ -44,6 +45,7 @@ FG_GREEN = 1
 FG_BLUE = 0
 FONT_SIZE = 24
 FONT_NAME = None
+OUTPUT_FILENAME = None
 # Ctrl-z: undo
 # Ctrl-y: redo
 STATUS_BAR_HEIGHT = 30
@@ -97,21 +99,25 @@ class TransparentWindow(Gtk.Window):
         self.set_position(Gtk.WindowPosition.CENTER)
         self.connect("delete-event", Gtk.main_quit)
         self.set_app_paintable(True)
-        self.set_decorated(False)
+        # if linux
+        os_release = platform.system()
+        if os_release == "Linux":
+            self.set_decorated(False)
         self.show_all()
 
     def fullscreen(self):
         screen = self.get_screen()
-        self.height = screen.get_height() * 0.95
+        self.height = screen.get_height()
         self.set_size_request(self.width, self.height)
         self.resize(self.width, self.height)
         self.is_fullscreen = True
-
+        
     def minimize(self):
         self.height = 10
         self.set_size_request(self.width, self.height)
         self.resize(self.width, self.height)
         self.is_fullscreen = False
+        os_release = platform.system()
 
     def clear(self):
         self.shapes = []
@@ -120,9 +126,30 @@ class TransparentWindow(Gtk.Window):
         self.link = []
         self.last_position = (0, 0)
         
-    def shapes2svg(self):
-        pass
+    def save(self):
+        dwg = svgwrite.Drawing(OUTPUT_FILENAME, profile='full')
         
+        for shape in self.shapes:
+            shape_type = shape["type"]
+            if shape_type == "line":
+                # color 0 - 1.0 -> percentage
+                color = tuple(map(lambda x: min(x*100, 100), shape["color"]))
+                pline = dwg.polyline(points=shape["points"],
+                                     stroke=svgwrite.rgb(*color, '%'),
+                                     stroke_width=shape["width"],
+                                     fill_opacity=0)
+                dwg.add(pline)
+            elif shape_type == "text":
+                text = shape["text"]
+                color = tuple(map(lambda x: min(x*100, 100), shape["color"]))
+                dwg.add(dwg.text(text,
+                                 font_size=FONT_SIZE,
+                                 font_family=FONT_NAME,
+                                 insert=shape["position"],
+                                 stroke=svgwrite.rgb(*color, '%')))
+            # elif shape_type == "image":
+        dwg.save()
+
     def on_key_press(self, wid, event):
         global FG_RED
         global FG_GREEN
@@ -140,7 +167,7 @@ class TransparentWindow(Gtk.Window):
             self.shapes.append(self.redo_shapes[-1])
             del self.redo_shapes[-1]
             self.darea.queue_draw()
-        # elif ctrl and event.keyval == Gdk.KEY_s:
+        elif ctrl and event.keyval == Gdk.KEY_s:
         #     # AttributeError: 'GdkQuartzWindow' object has no attribute 'get_colormap'
         #     filename = "tmp.png"
         #     drawable = self.get_window()
@@ -150,12 +177,19 @@ class TransparentWindow(Gtk.Window):
         #                                       0, 0, 0, 0,
         #                                       *drawable.get_size())
         #     pixbuf.save(filename, 'png')
+
+            self.save()
+    
         elif ctrl and event.keyval == Gdk.KEY_f:
             # full screen <-> minimize
             if self.is_fullscreen:
                 self.minimize()
             else:
                 self.fullscreen()
+        elif ctrl and event.keyval == Gdk.KEY_g:
+            # toggle decorated
+            # mac pass key, mouse event to window behind this app window
+            self.set_decorated(not self.get_decorated())
         elif ctrl and event.keyval == Gdk.KEY_d:
             # clear
             self.clear()
@@ -214,7 +248,9 @@ class TransparentWindow(Gtk.Window):
                 cr.set_line_width(LINE_WIDTH)
                 cr.set_font_size(FONT_SIZE)
                 if FONT_NAME is not None:
-                    cr.select_font_face(FONT_NAME, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+                    cr.select_font_face(FONT_NAME,
+                                        cairo.FONT_SLANT_NORMAL,
+                                        cairo.FONT_WEIGHT_NORMAL)
                 (x, y) = shape_info["position"]
 
                 cr.move_to(x, y)
@@ -227,7 +263,7 @@ class TransparentWindow(Gtk.Window):
                 pixbuf = shape_info["image"]
                 Gdk.cairo_set_source_pixbuf(cr, pixbuf, x, y)
                 cr.paint()
-                #cr.fill()
+                # cr.fill()
             elif shape_type == "line":
                 points = shape_info["points"]
                 color = shape_info["color"]
@@ -281,10 +317,6 @@ class TransparentWindow(Gtk.Window):
             self.drawing_line = True
 
     def on_button_release(self, w, e):
-        global FG_RED
-        global FG_GREEN
-        global FG_BLUE
-
         if e.type == Gdk.EventType.BUTTON_RELEASE \
            and e.button == MouseButtons.LEFT_BUTTON:
 
@@ -328,6 +360,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--blue', type=float, default=0.0)
     parser.add_argument('-l', '--line-width', type=float, default=4.0)
     parser.add_argument('-f', '--font', type=str, default=None)
+    parser.add_argument('-o', '--output', type=str, default="ohp.svg")
 
     args = parser.parse_args()
     if args.font is not None:
@@ -346,6 +379,7 @@ if __name__ == '__main__':
     FG_BLUE = min(1, args.blue)
     LINE_WIDTH = args.line_width
     COLOR_TABLE = make_color_table()
+    OUTPUT_FILENAME = args.output
 
     GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
     TransparentWindow()
