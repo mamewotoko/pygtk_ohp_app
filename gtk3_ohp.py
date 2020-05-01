@@ -402,6 +402,8 @@ if __name__ == "__main__":
         elif os_release == "Linux":
             # ubuntu?
             FONT_NAME = "TakaoGothic"
+        elif os_release == "Windows":
+            FONT_NAME = "meiryo"
 
     FG_RED = min(1, args.red)
     FG_GREEN = min(1, args.green)

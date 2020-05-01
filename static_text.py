@@ -76,6 +76,7 @@ if __name__ == '__main__':
         FONT_NAME = args.font
     else:
         os_release = platform.system()
+        # set font face for japanese
         print(os_release)
         if os_release == "Darwin":
             # TODO: if japanese
@@ -83,6 +84,8 @@ if __name__ == '__main__':
         elif os_release == "Linux":
             # ubuntu?
             FONT_NAME = "takao"
+        elif os_release == "Windows":
+            FONT_NAME = "meiryo"
 
     FG_RED = min(1, args.red)
     FG_GREEN = min(1, args.green)
