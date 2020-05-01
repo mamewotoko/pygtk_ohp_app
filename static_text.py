@@ -10,9 +10,7 @@
 
 import argparse
 import cairo
-import os
 import platform
-import re
 import signal
 import gi
 gi.require_version('Gtk', '3.0')
