@@ -10,16 +10,16 @@
 
 import argparse
 import cairo
-import gi
-gi.require_version('Gtk', '3.0')
-gi.require_version('Gdk', '3.0')
-from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import GLib
 import os
 import platform
 import re
 import signal
+import gi
+gi.require_version('Gtk', '3.0')
+gi.require_version('Gdk', '3.0')
+from gi.repository import Gtk  # noqa E402
+from gi.repository import Gdk # noqa E402
+from gi.repository import GLib # noqa E402
 
 FG_RED = 0
 FG_GREEN = 1
