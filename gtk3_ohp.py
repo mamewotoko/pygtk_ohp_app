@@ -15,6 +15,7 @@ import platform
 import re
 import signal
 import svgwrite
+import xml.etree.ElementTree as ET
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
@@ -60,9 +61,27 @@ class MouseButtons:
 
 
 class TransparentWindow(Gtk.Window):
-    def __init__(self):
+    def __init__(self, svgfiles=[]):
         Gtk.Window.__init__(self)
-
+        self.shapes = []
+        for svgfile in svgfiles:
+            tree = ET.parse(svgfile)
+            root = tree.getroot()
+            for child in root:
+                if child.tag == "{http://www.w3.org/2000/svg}polyline":
+                    points = list(map(lambda s: tuple(map(lambda x: int(float(x)), s.split(","))),
+                                      child.attrib["points"].split(" ")))
+                    stroke = child.attrib["stroke"]
+                    m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", stroke)
+                    color = (int(float(m.group(1))), int(float(m.group(2))), int(float(m.group(3))))
+                    stroke_width = int(float(child.attrib["stroke-width"]))
+                    self.shapes.append({"type": "line",
+                                        "points": points,
+                                        "color": color,
+                                        "width": stroke_width})
+                # todo: text
+                # todo: image
+        
         self.connect("destroy", Gtk.main_quit)
         self.button_pressed = False
         self.drawing_line = False
@@ -88,7 +107,6 @@ class TransparentWindow(Gtk.Window):
         )
         self.add(self.darea)
 
-        self.shapes = []
         self.redo_shapes = []
         self.coords = []
         self.link = []
@@ -107,6 +125,7 @@ class TransparentWindow(Gtk.Window):
         os_release = platform.system()
         if os_release == "Linux":
             self.set_decorated(False)
+        
         self.show_all()
 
     def fullscreen(self):
@@ -345,6 +364,7 @@ class TransparentWindow(Gtk.Window):
         ):
 
             if 1 < len(self.coords):
+
                 self.shapes.append(
                     {
                         "type": "line",
@@ -389,7 +409,7 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--line-width", type=float, default=4.0)
     parser.add_argument("-f", "--font", type=str, default=None)
     parser.add_argument("-o", "--output", type=str, default="ohp.svg")
-    # parser.add_argument("svgfiles", metavar="svgfile", type=str, nargs="*")
+    parser.add_argument("svgfiles", metavar="svgfile", type=str, nargs="*")
 
     args = parser.parse_args()
     os_release = platform.system()
@@ -415,5 +435,5 @@ if __name__ == "__main__":
 
     if os_release != "Windows":
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
-    TransparentWindow()
+    TransparentWindow(args.svgfiles)
     Gtk.main()
