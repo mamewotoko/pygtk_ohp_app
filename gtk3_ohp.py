@@ -159,7 +159,10 @@ class TransparentWindow(Gtk.Window):
         ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK) == Gdk.ModifierType.CONTROL_MASK or \
             (event.state & COMMAND_MASK) == COMMAND_MASK
 
-        if ctrl and event.keyval == Gdk.KEY_z and 0 < len(self.shapes):
+        if ctrl and event.keyval == Gdk.KEY_q:
+            # TODO: ask save data or not
+            Gtk.main_quit()
+        elif ctrl and event.keyval == Gdk.KEY_z and 0 < len(self.shapes):
             self.redo_shapes.append(self.shapes[-1])
             del self.shapes[-1]
             self.darea.queue_draw()
@@ -363,10 +366,11 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output', type=str, default="ohp.svg")
 
     args = parser.parse_args()
+    os_release = platform.system()
+
     if args.font is not None:
         FONT_NAME = args.font
     else:
-        os_release = platform.system()
         if os_release == "Darwin":
             # TODO: if japanese
             FONT_NAME = "Osaka"
@@ -381,6 +385,9 @@ if __name__ == '__main__':
     COLOR_TABLE = make_color_table()
     OUTPUT_FILENAME = args.output
 
-    GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
+    if os_release != "Windows":
+        GLib.unix_signal_add(GLib.PRIORITY_DEFAULT,
+                             signal.SIGINT,
+                             Gtk.main_quit)
     TransparentWindow()
     Gtk.main()
