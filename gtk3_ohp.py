@@ -79,7 +79,17 @@ class TransparentWindow(Gtk.Window):
                                         "points": points,
                                         "color": color,
                                         "width": stroke_width})
-                # todo: text
+                elif child.tag == "{http://www.w3.org/2000/svg}text":
+                    position = (int(float(child.attrib["x"])), int(float(child.attrib["y"])))
+                    stroke = child.attrib["stroke"]
+                    m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", stroke)
+                    color = (int(float(m.group(1))), int(float(m.group(2))), int(float(m.group(3))))
+                    # font = child.attrib["font-family"]
+                    text = child.text
+                    self.shapes.append({"type": "text",
+                                        "position": position,
+                                        "color": color,
+                                        "text": text})
                 # todo: image
         
         self.connect("destroy", Gtk.main_quit)
