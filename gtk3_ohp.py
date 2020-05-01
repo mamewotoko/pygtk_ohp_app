@@ -389,6 +389,7 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--line-width", type=float, default=4.0)
     parser.add_argument("-f", "--font", type=str, default=None)
     parser.add_argument("-o", "--output", type=str, default="ohp.svg")
+    # parser.add_argument("svgfiles", metavar="svgfile", type=str, nargs="*")
 
     args = parser.parse_args()
     os_release = platform.system()

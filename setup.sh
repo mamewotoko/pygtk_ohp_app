@@ -12,13 +12,13 @@ if [ "$UNAME" = Darwin ]; then
     brew link --overwrite python
     brew install pygobject3
     brew install gtk+3 pkg-config
-    python3 -m pip requirements.txt
+    python3 -m pip install -r requirements.txt
 
 elif [ -f /etc/lsb-release ]; then
     # debian, ubuntu
     sudo apt-get update
     sudo apt-get install -y python3 python3-dev python3-pip libgtk-3-dev python3-setuptools xvfb pkg-config
-    python3 -m pip requirements.txt
+    python3 -m pip install -r requirements.txt
 
 elif [[ "$UNAME" == "MINGW64_NT"* ]]; then
     # mingw64
