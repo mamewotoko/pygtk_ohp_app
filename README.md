@@ -13,12 +13,14 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 以下のいずれかを準備してください
 
 * [Homebrew](https://brew.sh/index_ja) がインストールされたMac
-* [Ubuntu 18.04](https://www.ubuntulinux.jp/News/ubuntu1804)
-* [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
+* Ubuntu (Linux)
+  * [Ubuntu 18.04](https://www.ubuntulinux.jp/News/ubuntu1804)
+  * [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
+* [msys2](https://www.msys2.org/) がインストールされたWindows 10
 
 ## 使い方
 ### 準備
-1. gtk+3などをインストールします。
+1. ターミナルを開いて、以下のコマンドを実行し、gtk+3などをインストールします。
 
     ```
     sh setup.sh
