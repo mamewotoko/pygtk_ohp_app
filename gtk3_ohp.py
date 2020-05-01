@@ -158,7 +158,7 @@ class TransparentWindow(Gtk.Window):
                 color = tuple(map(lambda x: min(x * 100, 100), shape["color"]))
                 pline = dwg.polyline(
                     points=shape["points"],
-                    stroke=svgwrite.rgb(*color, "%"),
+                    stroke=svgwrite.rgb(color[0], color[1], color[2], "%"),
                     stroke_width=shape["width"],
                     fill_opacity=0,
                 )
