@@ -15,6 +15,12 @@ import platform
 import re
 import signal
 import svgwrite
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+import uuid
+import websocket
 import xml.etree.ElementTree as ET
 import gi
 gi.require_version("Gtk", "3.0")
@@ -48,7 +54,6 @@ FG_GREEN = 1
 FG_BLUE = 0
 FONT_SIZE = 24
 FONT_NAME = None
-OUTPUT_FILENAME = None
 # Ctrl-z: undo
 # Ctrl-y: redo
 STATUS_BAR_HEIGHT = 30
@@ -61,40 +66,62 @@ class MouseButtons:
 
 
 class TransparentWindow(Gtk.Window):
-    def __init__(self, svgfiles=[]):
+
+    def visit(self, element):
+        for child in element:
+            if child.tag in ["{http://www.w3.org/2000/svg}g",
+                             "{http://www.w3.org/2000/svg}svg"]:
+                print("g")
+                self.visit(child)
+            elif child.tag == "{http://www.w3.org/2000/svg}polyline":
+                print("polyline")
+                points = list(map(lambda s: tuple(map(lambda x: int(float(x)), s.split(","))),
+                                  child.attrib["points"].split(" ")))
+                stroke = child.attrib["stroke"]
+                m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", stroke)
+                if m is None:
+                    color = (0, 0, 0)
+                else:
+                    color = (int(float(m.group(1))), int(float(m.group(2))), int(float(m.group(3))))
+                stroke_width = int(float(child.attrib["stroke-width"]))
+                self.shapes.append({"type": "line",
+                                    "points": points,
+                                    "color": color,
+                                    "width": stroke_width})
+            elif child.tag == "{http://www.w3.org/2000/svg}text":
+                print("text")
+                position = (int(float(child.attrib["x"])), int(float(child.attrib["y"])))
+                stroke = child.attrib["stroke"]
+                m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", stroke)
+                if m is None:
+                    color = (0, 0, 0)
+                else:
+                    color = (int(float(m.group(1))), int(float(m.group(2))), int(float(m.group(3))))
+                # font = child.attrib["font-family"]
+                text = child.text
+                self.shapes.append({"type": "text",
+                                    "position": position,
+                                    "color": color,
+                                    "text": text})
+            else:
+                print(element)
+            # image
+        
+    def load_svg_file(self, svgfile):
+        tree = ET.parse(svgfile)
+        root = tree.getroot()
+        self.visit(root)
+        self.darea.queue_draw()
+    
+    def __init__(self, output_filename="ohp.svg", svgfiles=[], websock_url=None):
         Gtk.Window.__init__(self)
         self.shapes = []
         for svgfile in svgfiles:
-            tree = ET.parse(svgfile)
-            root = tree.getroot()
-            for child in root:
-                if child.tag == "{http://www.w3.org/2000/svg}polyline":
-                    points = list(map(lambda s: tuple(map(lambda x: int(float(x)), s.split(","))),
-                                      child.attrib["points"].split(" ")))
-                    stroke = child.attrib["stroke"]
-                    m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", stroke)
-                    color = (int(float(m.group(1))), int(float(m.group(2))), int(float(m.group(3))))
-                    stroke_width = int(float(child.attrib["stroke-width"]))
-                    self.shapes.append({"type": "line",
-                                        "points": points,
-                                        "color": color,
-                                        "width": stroke_width})
-                elif child.tag == "{http://www.w3.org/2000/svg}text":
-                    position = (int(float(child.attrib["x"])), int(float(child.attrib["y"])))
-                    stroke = child.attrib["stroke"]
-                    m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", stroke)
-                    color = (int(float(m.group(1))), int(float(m.group(2))), int(float(m.group(3))))
-                    # font = child.attrib["font-family"]
-                    text = child.text
-                    self.shapes.append({"type": "text",
-                                        "position": position,
-                                        "color": color,
-                                        "text": text})
-                # todo: image
-        
+            self.load_svg_file(svgfile)
         self.connect("destroy", Gtk.main_quit)
         self.button_pressed = False
         self.drawing_line = False
+        self.output_filename = output_filename
         screen = self.get_screen()
         visual = screen.get_rgba_visual()
         if visual and screen.is_composited():
@@ -135,9 +162,47 @@ class TransparentWindow(Gtk.Window):
         os_release = platform.system()
         if os_release == "Linux":
             self.set_decorated(False)
+
+        def on_open(ws):
+            print("on_open")
+
+        def on_message(ws, message):
+            print("on message")
+            filename = uuid.uuid4().hex + ".svg"
+            with open(filename, "w") as f:
+                f.write(message)
+            self.load_svg_file(filename)
+
+        def on_close(ws):
+            print("websocket closed")
+            # TODO: reconnect
+
+        def on_error(ws, error):
+            print(error)
+            # TODO: reconnect
+
+        if websock_url is not None:
+            self.websock_url = websock_url
+            print(self.websock_url)
+            websocket.enableTrace(True)
+            self.websock = websocket.WebSocketApp(websock_url,
+                                                  on_open=on_open,
+                                                  on_message=on_message,
+                                                  on_error=on_error,
+                                                  on_close=on_close)
+            self.start_websocket()
+        else:
+            self.websock_url = None
+            self.websock = None
         
         self.show_all()
 
+    def start_websocket(self):
+        def run(*args):
+            print("thread run")
+            self.websock.run_forever()
+        thread.start_new_thread(run, ())
+        
     def fullscreen(self):
         screen = self.get_screen()
         self.height = screen.get_height()
@@ -157,6 +222,9 @@ class TransparentWindow(Gtk.Window):
         self.coords = []
         self.link = []
         self.last_position = (0, 0)
+
+    def send(self):
+        self.websock.send(self.output_filename)
 
     def save(self):
         dwg = svgwrite.Drawing(OUTPUT_FILENAME, profile="full")
@@ -419,6 +487,7 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--line-width", type=float, default=4.0)
     parser.add_argument("-f", "--font", type=str, default=None)
     parser.add_argument("-o", "--output", type=str, default="ohp.svg")
+    parser.add_argument("-s", "--socket", type=str, default=None)
     parser.add_argument("svgfiles", metavar="svgfile", type=str, nargs="*")
 
     args = parser.parse_args()
@@ -441,9 +510,11 @@ if __name__ == "__main__":
     FG_BLUE = min(1, args.blue)
     LINE_WIDTH = args.line_width
     COLOR_TABLE = make_color_table()
-    OUTPUT_FILENAME = args.output
 
     if os_release != "Windows":
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
-    TransparentWindow(args.svgfiles)
+    TransparentWindow(output_filename=args.output,
+                      svgfiles=args.svgfiles,
+                      websock_url=args.socket)
+    
     Gtk.main()
