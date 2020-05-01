@@ -7,7 +7,10 @@ GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/
 
 Macの写真アプリの上にアプリを起動して文字を書いてみました。
 
+![windows10](image/windows10.png)
+
 ![ubuntu18.04](image/ubuntu1804.png) ![ubuntu20.04](image/ubuntu2004.png)
+
 
 ## 前提
 以下のいずれかを準備してください

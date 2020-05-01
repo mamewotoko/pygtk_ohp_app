@@ -22,9 +22,9 @@ elif [ -f /etc/lsb-release ]; then
 
 elif [[ "$UNAME" == "MINGW64_NT"* ]]; then
     # mingw64
-    pacman -Syu
-    pacman -Sy mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-gobject 
-    pacman -Sy mingw-w64-x86_64-python3-setuptools mingw-w64-x86_64-python3-pip
+    pacman -Syu --noconfirm
+    pacman -Sy --noconfirm mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-gobject 
+    pacman -Sy --noconfirm mingw-w64-x86_64-python3-setuptools mingw-w64-x86_64-python3-pip
     python3 -m pip install svgwrite pycairo
 
 else
