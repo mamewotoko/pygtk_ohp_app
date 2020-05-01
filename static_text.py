@@ -50,7 +50,7 @@ class TransparentTextWindow(Gtk.Window):
         self.set_app_paintable(True)
         self.set_decorated(False)
         self.set_keep_above(True)
-        self.show_all()        
+        self.show_all()
 
     def on_draw(self, wid, cr):
         cr.select_font_face(FONT_NAME, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
