@@ -15,6 +15,7 @@ import platform
 import re
 import signal
 import svgwrite
+import traceback
 try:
     import thread
 except ImportError:
@@ -43,6 +44,7 @@ COLOR_CONFIG = {
     "aqua": "00FFFF",
     "orange": "FFA500",
 }
+
 PEN_WIDTH = [1, 2, 3, 5, 8, 13, 21]
 FRAME_WIDTH = 4
 FRAME_COLOR = (1, 0, 0)
@@ -103,25 +105,37 @@ class TransparentWindow(Gtk.Window):
                                     "position": position,
                                     "color": color,
                                     "text": text})
-            else:
-                print(element)
+            # elif child.tag == "{http://www.w3.org/2000/svg}rect":
+            #     print("rect")
+            #     width = child.attrib["width"]
+            #     height = child.attrib["height"]
+            #     classname = child.attrib[child.attrib["class"].split("_")[0]]
+            #     fill_color = SVG_COLOR_TABLE[classname]
+            #     self.shapes.append("type": "text",
+            #                        "position": 
+
             # image
+            # elif child.tag == "{http://www.w3.org/2000/svg}image":
         
     def load_svg_file(self, svgfile):
         tree = ET.parse(svgfile)
         root = tree.getroot()
         self.visit(root)
+        self.last_load_len = len(self.shapes)
         self.darea.queue_draw()
     
     def __init__(self, output_filename="ohp.svg", svgfiles=[], websock_url=None):
         Gtk.Window.__init__(self)
         self.shapes = []
+        self.last_load_len = 0
         for svgfile in svgfiles:
             self.load_svg_file(svgfile)
         self.connect("destroy", Gtk.main_quit)
         self.button_pressed = False
         self.drawing_line = False
         self.output_filename = output_filename
+        self.tmp_filename = uuid.uuid4().hex + ".svg"
+
         screen = self.get_screen()
         visual = screen.get_rgba_visual()
         if visual and screen.is_composited():
@@ -167,24 +181,28 @@ class TransparentWindow(Gtk.Window):
             print("on_open")
 
         def on_message(ws, message):
-            print("on message")
-            filename = uuid.uuid4().hex + ".svg"
-            with open(filename, "w") as f:
+            # TODO merge shapes
+            local_shapes = self.shapes[self.last_load_len:]
+            self.shapes = []
+            # print("on message: " + message)
+            print(self.tmp_filename)
+            with open(self.tmp_filename, "w") as f:
                 f.write(message)
-            self.load_svg_file(filename)
-
+            self.load_svg_file(self.tmp_filename)
+            self.shapes.extend(local_shapes)
+            
         def on_close(ws):
             print("websocket closed")
-            # TODO: reconnect
+            self.start_websocket()
 
         def on_error(ws, error):
             print(error)
-            # TODO: reconnect
+            self.start_websocket()
 
         if websock_url is not None:
             self.websock_url = websock_url
             print(self.websock_url)
-            websocket.enableTrace(True)
+            # websocket.enableTrace(True)
             self.websock = websocket.WebSocketApp(websock_url,
                                                   on_open=on_open,
                                                   on_message=on_message,
@@ -199,8 +217,15 @@ class TransparentWindow(Gtk.Window):
 
     def start_websocket(self):
         def run(*args):
-            print("thread run")
-            self.websock.run_forever()
+            try:
+                print("thread run")
+                self.websock_running = True
+                self.websock.run_forever()
+                print("websock finished")
+            except Exception:
+                print(traceback.format_exc())
+            finally:
+                self.websock_running = False
         thread.start_new_thread(run, ())
         
     def fullscreen(self):
@@ -224,10 +249,11 @@ class TransparentWindow(Gtk.Window):
         self.last_position = (0, 0)
 
     def send(self):
-        self.websock.send(self.output_filename)
+        with open(self.output_filename) as f:
+            self.websock.send(f.read())
 
     def save(self):
-        dwg = svgwrite.Drawing(OUTPUT_FILENAME, profile="full")
+        dwg = svgwrite.Drawing(self.output_filename, profile="full")
 
         for shape in self.shapes:
             shape_type = shape["type"]
@@ -253,6 +279,7 @@ class TransparentWindow(Gtk.Window):
                         stroke=svgwrite.rgb(*color, "%"),
                     )
                 )
+            # elif shape_type == "rect":
             # elif shape_type == "image":
         dwg.save()
 
@@ -281,6 +308,7 @@ class TransparentWindow(Gtk.Window):
             self.darea.queue_draw()
         elif ctrl and event.keyval == Gdk.KEY_s:
             self.save()
+            self.send()
         elif ctrl and event.keyval == Gdk.KEY_f:
             # full screen <-> minimize
             if self.is_fullscreen:
@@ -475,7 +503,7 @@ def make_color_table():
         keycode = ord(name[0:1].upper())
         color_tuple = hex2float(color_code)
         result[keycode] = color_tuple
-
+        
     return result
 
 
