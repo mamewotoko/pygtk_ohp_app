@@ -32,34 +32,38 @@ from gi.repository import GLib  # noqa E402
 
 APP_TITLE = "Gtk3 OHP"
 # initial of color name should be different
+COLOR_KEYS = ["red", "navy", "green", "black", "pink",
+              "murasaki", "white", "aqua", "orange"]
 COLOR_CONFIG = {
     "red": "FF0000",
-    "navy": "02075D",
+    "navy": "00008D",
     "green": "00FF00",
     "black": "000000",
     "pink": "FF1493",
     "yellow": "FFFF00",
-    "murasaki": "A260BF",
+    "murasaki": "800080",
     "white": "FFFFFF",
     "aqua": "00FFFF",
     "orange": "FFA500",
+    "blue": "0000FF",
+    "gray": "808080",
+    "purple": "800080",
+    "fuchsia": "FF00FF",
 }
-
 PEN_WIDTH = [1, 2, 3, 5, 8, 13, 21]
 FRAME_WIDTH = 4
 FRAME_COLOR = (1, 0, 0)
+CURRENT_COLOR = None
 
 COMMAND_MASK = 0x10000010
 LINE_WIDTH = 5
-FG_RED = 0
-FG_GREEN = 1
-FG_BLUE = 0
 FONT_SIZE = 24
 FONT_NAME = None
 # Ctrl-z: undo
 # Ctrl-y: redo
 STATUS_BAR_HEIGHT = 30
-COLOR_TABLE = None
+COLOR_NAME2COLOR = None
+KEY2COLOR_NAME = None
 
 
 class MouseButtons:
@@ -73,25 +77,24 @@ class TransparentWindow(Gtk.Window):
         for child in element:
             if child.tag in ["{http://www.w3.org/2000/svg}g",
                              "{http://www.w3.org/2000/svg}svg"]:
-                print("g")
                 self.visit(child)
             elif child.tag == "{http://www.w3.org/2000/svg}polyline":
-                print("polyline")
                 points = list(map(lambda s: tuple(map(lambda x: int(float(x)), s.split(","))),
                                   child.attrib["points"].split(" ")))
                 stroke = child.attrib["stroke"]
                 m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", stroke)
-                if m is None:
-                    color = (0, 0, 0)
+                if m is not None:
+                    color = (int(float(m.group(1))),
+                             int(float(m.group(2))),
+                             int(float(m.group(3))))
                 else:
-                    color = (int(float(m.group(1))), int(float(m.group(2))), int(float(m.group(3))))
+                    color = COLOR_NAME2COLOR.get(stroke, (0, 0, 0))                    
                 stroke_width = int(float(child.attrib["stroke-width"]))
                 self.shapes.append({"type": "line",
                                     "points": points,
                                     "color": color,
                                     "width": stroke_width})
             elif child.tag == "{http://www.w3.org/2000/svg}text":
-                print("text")
                 position = (int(float(child.attrib["x"])), int(float(child.attrib["y"])))
                 stroke = child.attrib["stroke"]
                 m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", stroke)
@@ -199,6 +202,7 @@ class TransparentWindow(Gtk.Window):
             print(error)
             self.start_websocket()
 
+        self.websock_running = False
         if websock_url is not None:
             self.websock_url = websock_url
             print(self.websock_url)
@@ -221,12 +225,13 @@ class TransparentWindow(Gtk.Window):
                 print("thread run")
                 self.websock_running = True
                 self.websock.run_forever()
-                print("websock finished")
             except Exception:
                 print(traceback.format_exc())
             finally:
+                print("websock finished")
                 self.websock_running = False
-        thread.start_new_thread(run, ())
+        if not self.websock_running:
+            thread.start_new_thread(run, ())
         
     def fullscreen(self):
         screen = self.get_screen()
@@ -249,6 +254,9 @@ class TransparentWindow(Gtk.Window):
         self.last_position = (0, 0)
 
     def send(self):
+        if self.websock is None:
+            print("no websock")
+            return
         with open(self.output_filename) as f:
             self.websock.send(f.read())
 
@@ -284,9 +292,7 @@ class TransparentWindow(Gtk.Window):
         dwg.save()
 
     def on_key_press(self, wid, event):
-        global FG_RED
-        global FG_GREEN
-        global FG_BLUE
+        global CURRENT_COLOR
         global LINE_WIDTH
 
         ctrl = (
@@ -330,7 +336,7 @@ class TransparentWindow(Gtk.Window):
                     {
                         "position": self.last_position,
                         "type": "text",
-                        "color": (FG_RED, FG_GREEN, FG_BLUE),
+                        "color": CURRENT_COLOR,
                         "text": text,
                     }
                 )
@@ -344,10 +350,10 @@ class TransparentWindow(Gtk.Window):
                 self.darea.queue_draw()
                 return
         else:
-            color = COLOR_TABLE.get(event.keyval)
-            if color is not None:
-                (FG_RED, FG_GREEN, FG_BLUE) = color
-            if event.keyval in range(ord("1"), ord(str(len(PEN_WIDTH))) + 1):
+            color_name = KEY2COLOR_NAME.get(event.keyval)
+            if color_name is not None:
+                CURRENT_COLOR = COLOR_NAME2COLOR[color_name]
+            elif event.keyval in range(ord("1"), ord(str(len(PEN_WIDTH))) + 1):
                 LINE_WIDTH = PEN_WIDTH[event.keyval - ord("1")]
 
     def draw_line(self, wid, cr, points):
@@ -401,14 +407,16 @@ class TransparentWindow(Gtk.Window):
                 points = shape_info["points"]
                 color = shape_info["color"]
                 width = shape_info["width"]
-                cr.set_source_rgb(*color)
+                cr.set_source_rgb(color[0], color[1], color[2])
                 cr.set_line_width(width)
                 self.draw_line(wid, cr, points)
             else:
                 print("unknown shpae: " + shape_type)
 
         if self.drawing_line:
-            cr.set_source_rgb(FG_RED, FG_GREEN, FG_BLUE)
+            cr.set_source_rgb(CURRENT_COLOR[0],
+                              CURRENT_COLOR[1],
+                              CURRENT_COLOR[2])
             cr.set_line_width(LINE_WIDTH)
 
             self.draw_line(wid, cr, self.coords)
@@ -449,10 +457,6 @@ class TransparentWindow(Gtk.Window):
         ):
 
             for l in self.link:
-                print(
-                    "ex. ey %d, %d %d %d"
-                    % (e.x, e.y, l["position"][0], l["position"][1])
-                )
                 if self.link_clicked(l, e.x, e.y):
                     self.open_link(l["url"])
                     break
@@ -474,7 +478,7 @@ class TransparentWindow(Gtk.Window):
                 self.shapes.append(
                     {
                         "type": "line",
-                        "color": (FG_RED, FG_GREEN, FG_BLUE),
+                        "color": CURRENT_COLOR,
                         "width": LINE_WIDTH,
                         "points": self.coords,
                     }
@@ -498,13 +502,20 @@ def hex2float(h):
 
 
 def make_color_table():
-    result = {}
-    for (name, color_code) in COLOR_CONFIG.items():
+    key2color_name = {}
+    color_name2color = {}
+    
+    for name in COLOR_KEYS:
+        color_code = COLOR_CONFIG[name]
         keycode = ord(name[0:1].upper())
-        color_tuple = hex2float(color_code)
-        result[keycode] = color_tuple
+        key2color_name[keycode] = name
+
+    for (name, color) in COLOR_CONFIG.items():
+        color_code = COLOR_CONFIG[name]
+        color = hex2float(color_code)
+        color_name2color[name] = color
         
-    return result
+    return (key2color_name, color_name2color)
 
 
 if __name__ == "__main__":
@@ -533,11 +544,11 @@ if __name__ == "__main__":
         elif os_release == "Windows":
             FONT_NAME = "meiryo"
 
-    FG_RED = min(1, args.red)
-    FG_GREEN = min(1, args.green)
-    FG_BLUE = min(1, args.blue)
+    CURRENT_COLOR = (min(1, args.red),
+                     min(1, args.green),
+                     min(1, args.blue))
     LINE_WIDTH = args.line_width
-    COLOR_TABLE = make_color_table()
+    (KEY2COLOR_NAME, COLOR_NAME2COLOR) = make_color_table()
 
     if os_release != "Windows":
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
