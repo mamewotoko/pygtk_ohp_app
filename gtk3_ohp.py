@@ -31,6 +31,7 @@ from gi.repository import Gdk  # noqa E402
 from gi.repository import GLib  # noqa E402
 
 APP_TITLE = "Gtk3 OHP"
+CLEAR_SHAPES_ON_MESSAGE = False
 # initial of color name should be different
 COLOR_KEYS = ["red", "navy", "green", "black", "pink",
               "murasaki", "white", "aqua", "orange"]
@@ -72,67 +73,114 @@ class MouseButtons:
 
 
 class TransparentWindow(Gtk.Window):
-
-    def visit(self, element):
+    def to_color(self, s):
+        m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", s)
+        if m is not None:
+            color = (int(float(m.group(1))),
+                     int(float(m.group(2))),
+                     int(float(m.group(3))))
+        else:
+            color = COLOR_NAME2COLOR.get(s, (0, 0, 0))
+        return color
+        
+    def visit(self, element, transform, result):
         for child in element:
             if child.tag in ["{http://www.w3.org/2000/svg}g",
                              "{http://www.w3.org/2000/svg}svg"]:
-                self.visit(child)
+                transform_str = child.attrib.get("transform")
+                if transform_str is not None:
+                    m = re.match(r"matrix\(([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+),([0-9.]+)\)", transform_str)
+                    if m is not None:
+                        transform_new = cairo.Matrix(float(m.group(1)),
+                                                     float(m.group(2)),
+                                                     float(m.group(3)),
+                                                     float(m.group(4)),
+                                                     float(m.group(5)),
+                                                     float(m.group(6)))
+                        print(transform)
+                        print(transform_new)
+                        transform = transform.multiply(transform_new)
+                        print(transform)
+                self.visit(child, transform, result)
             elif child.tag == "{http://www.w3.org/2000/svg}polyline":
                 points = list(map(lambda s: tuple(map(lambda x: int(float(x)), s.split(","))),
                                   child.attrib["points"].split(" ")))
                 stroke = child.attrib["stroke"]
-                m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", stroke)
-                if m is not None:
-                    color = (int(float(m.group(1))),
-                             int(float(m.group(2))),
-                             int(float(m.group(3))))
-                else:
-                    color = COLOR_NAME2COLOR.get(stroke, (0, 0, 0))                    
+                color = self.to_color(stroke)
                 stroke_width = int(float(child.attrib["stroke-width"]))
-                self.shapes.append({"type": "line",
-                                    "points": points,
-                                    "color": color,
-                                    "width": stroke_width})
+                result.append({"type": "line",
+                               "points": points,
+                               "color": color,
+                               "width": stroke_width})
             elif child.tag == "{http://www.w3.org/2000/svg}text":
                 position = (int(float(child.attrib["x"])), int(float(child.attrib["y"])))
-                stroke = child.attrib["stroke"]
-                m = re.match(r"rgb\(([0-9.]+)%,([0-9.]+)%,([0-9.]+)%\)", stroke)
-                if m is None:
-                    color = (0, 0, 0)
-                else:
-                    color = (int(float(m.group(1))), int(float(m.group(2))), int(float(m.group(3))))
+                print(child.attrib)
+                stroke = child.attrib.get("stroke")
+                if stroke is None:
+                    stroke = child.attrib.get("stroke", "red")
+                color = self.to_color(stroke)
                 # font = child.attrib["font-family"]
-                text = child.text
-                self.shapes.append({"type": "text",
-                                    "position": position,
-                                    "color": color,
-                                    "text": text})
-            # elif child.tag == "{http://www.w3.org/2000/svg}rect":
-            #     print("rect")
-            #     width = child.attrib["width"]
-            #     height = child.attrib["height"]
-            #     classname = child.attrib[child.attrib["class"].split("_")[0]]
-            #     fill_color = SVG_COLOR_TABLE[classname]
-            #     self.shapes.append("type": "text",
-            #                        "position": 
+                t = ET.tostring(child,
+                                encoding="utf-8",
+                                method="text").decode("utf-8")
+                print("text {}".format(t))
+                text = ET.tostring(child,
+                                   encoding="utf-8",
+                                   method="xml").decode("utf-8")
+                print("text {}".format(text))
+                print(child.attrib)
+                result.append({"type": "text",
+                               "position": position,
+                               "color": color,
+                               "text": text})
+            elif child.tag == "{http://www.w3.org/2000/svg}rect":
+                width = child.attrib["width"]
+                height = child.attrib["height"]
+                # TODO; use attribute not stylesheet
+                print(child.attrib)
+                color_name = child.attrib.get("fill")
+                if color_name is None:
+                    class_name = child.attrib.get("class")
+                    if class_name is not None:
+                        color_name = class_name.split("_")[0]
+                    else:
+                        color_name = "red"
+                if color_name == "none":
+                    continue
+                print("color_name of rect: {}".format(color_name))
+                color = self.to_color(color_name)
+                x = float(child.attrib.get("x", 0))
+                y = float(child.attrib.get("y", 0))
+                width = float(child.attrib.get("width", 10))
+                height = float(child.attrib.get("height", 10))
+                print("rect {}".format(transform))
+                position = transform.transform_point(x, y)
+                print(position)
+                print(transform)
+                result.append({"type": "rect",
+                               "position": position,
+                               "color": color,
+                               "width": width,
+                               "height": height})
 
             # image
             # elif child.tag == "{http://www.w3.org/2000/svg}image":
+        return result
         
     def load_svg_file(self, svgfile):
         tree = ET.parse(svgfile)
         root = tree.getroot()
-        self.visit(root)
-        self.last_load_len = len(self.shapes)
-        self.darea.queue_draw()
+        idm = cairo.Matrix(1, 0, 0, 1, 0, 0)
+        return self.visit(root, idm, [])
     
-    def __init__(self, output_filename="ohp.svg", svgfiles=[], websock_url=None):
+    def __init__(self,
+                 output_filename="ohp.svg",
+                 svgfiles=[],
+                 geometry=None,
+                 websock_url=None):
         Gtk.Window.__init__(self)
         self.shapes = []
         self.last_load_len = 0
-        for svgfile in svgfiles:
-            self.load_svg_file(svgfile)
         self.connect("destroy", Gtk.main_quit)
         self.button_pressed = False
         self.drawing_line = False
@@ -147,8 +195,11 @@ class TransparentWindow(Gtk.Window):
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         # TODO use monitor api
         self.is_fullscreen = True
-        self.width = screen.get_width()
-        self.height = screen.get_height() - STATUS_BAR_HEIGHT
+        if geometry is None:
+            self.width = screen.get_width()
+            self.height = screen.get_height() - STATUS_BAR_HEIGHT
+        else:
+            (self.width, self.height) = geometry
         self.set_size_request(self.width, self.height)
         self.set_resizable(True)
 
@@ -173,13 +224,19 @@ class TransparentWindow(Gtk.Window):
 
         self.set_title(APP_TITLE)
         self.set_position(Gtk.WindowPosition.CENTER)
+            
         self.connect("delete-event", Gtk.main_quit)
         self.set_app_paintable(True)
+        self.set_keep_above(True)
         # if linux
         os_release = platform.system()
         if os_release == "Linux":
             self.set_decorated(False)
 
+        for svgfile in svgfiles:
+            result = self.load_svg_file(svgfile)
+            self.shapes.extend(result)
+            
         def on_open(ws):
             print("on_open")
 
@@ -187,12 +244,12 @@ class TransparentWindow(Gtk.Window):
             # TODO merge shapes
             local_shapes = self.shapes[self.last_load_len:]
             self.shapes = []
-            # print("on message: " + message)
             print(self.tmp_filename)
             with open(self.tmp_filename, "w") as f:
                 f.write(message)
-            self.load_svg_file(self.tmp_filename)
+            self.shapes.extend(self.load_svg_file(self.tmp_filename))
             self.shapes.extend(local_shapes)
+            self.redraw()
             
         def on_close(ws):
             print("websocket closed")
@@ -253,6 +310,9 @@ class TransparentWindow(Gtk.Window):
         self.link = []
         self.last_position = (0, 0)
 
+    def redraw(self):
+        self.darea.queue_draw()
+        
     def send(self):
         if self.websock is None:
             print("no websock")
@@ -287,7 +347,19 @@ class TransparentWindow(Gtk.Window):
                         stroke=svgwrite.rgb(*color, "%"),
                     )
                 )
-            # elif shape_type == "rect":
+            elif shape_type == "rect":
+                width = shape["width"]
+                height = shape["height"]
+                color = tuple(map(lambda x: min(x * 100, 100), shape["color"]))
+                position = shape["position"]
+                dwg.add(
+                    dwg.rect(
+                        insert=position,
+                        size=(width, height),
+                        fill=svgwrite.rgb(*color, "%"),
+                    )
+                )
+                
             # elif shape_type == "image":
         dwg.save()
 
@@ -307,11 +379,11 @@ class TransparentWindow(Gtk.Window):
         elif ctrl and event.keyval == Gdk.KEY_z and 0 < len(self.shapes):
             self.redo_shapes.append(self.shapes[-1])
             del self.shapes[-1]
-            self.darea.queue_draw()
+            self.redraw()
         elif ctrl and event.keyval == Gdk.KEY_y and 0 < len(self.redo_shapes):
             self.shapes.append(self.redo_shapes[-1])
             del self.redo_shapes[-1]
-            self.darea.queue_draw()
+            self.redraw()
         elif ctrl and event.keyval == Gdk.KEY_s:
             self.save()
             self.send()
@@ -340,14 +412,14 @@ class TransparentWindow(Gtk.Window):
                         "text": text,
                     }
                 )
-                self.darea.queue_draw()
+                self.redraw()
                 return
             image = self.clipboard.wait_for_image()
             if image is not None:
                 self.shapes.append(
                     {"position": self.last_position, "type": "image", "image": image}
                 )
-                self.darea.queue_draw()
+                self.redraw()
                 return
         else:
             color_name = KEY2COLOR_NAME.get(event.keyval)
@@ -375,6 +447,7 @@ class TransparentWindow(Gtk.Window):
             if shape_type == "text":
                 # text []()
                 text = shape_info["text"]
+                print("text: {}".format(text))
                 m = re.match(r"\[(.*)\]\((.*)\)", text)
                 if m is not None:
                     display_text = m.group(1)
@@ -410,6 +483,19 @@ class TransparentWindow(Gtk.Window):
                 cr.set_source_rgb(color[0], color[1], color[2])
                 cr.set_line_width(width)
                 self.draw_line(wid, cr, points)
+            elif shape_type == "rect":
+                position = shape_info["position"]
+                color = shape_info["color"]
+                width = shape_info["width"]
+                height = shape_info["height"]
+                position = shape_info["position"]
+                print(color)
+                cr.set_source_rgb(color[0], color[1], color[2])
+                cr.rectangle(position[0],
+                             position[1],
+                             width,
+                             height)
+                cr.fill()
             else:
                 print("unknown shpae: " + shape_type)
 
@@ -487,13 +573,13 @@ class TransparentWindow(Gtk.Window):
             self.last_position = (e.x, e.y)
             self.button_pressed = False
             self.drawing_line = False
-            self.darea.queue_draw()
+            self.redraw()
 
     def on_move(self, w, e):
         if self.button_pressed:
             self.coords.append([e.x, e.y])
             self.last_position = (e.x, e.y)
-            self.darea.queue_draw()
+            self.redraw()
 
 
 def hex2float(h):
@@ -527,7 +613,8 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--font", type=str, default=None)
     parser.add_argument("-o", "--output", type=str, default="ohp.svg")
     parser.add_argument("-s", "--socket", type=str, default=None)
-    parser.add_argument("svgfiles", metavar="svgfile", type=str, nargs="*")
+    parser.add_argument("--geometry", type=str, default=None)
+    parser.add_argument("svgfiles", metavar="svgfile", type=str, nargs="*", default=[])
 
     args = parser.parse_args()
     os_release = platform.system()
@@ -543,7 +630,12 @@ if __name__ == "__main__":
             FONT_NAME = "TakaoGothic"
         elif os_release == "Windows":
             FONT_NAME = "meiryo"
-
+    geometery = None
+    if args.geometry:
+        m = re.match(r"(\d+)x(\d+)", args.geometry)
+        if m is not None:
+            geometry = (int(m.group(1)), int(m.group(2)))
+    
     CURRENT_COLOR = (min(1, args.red),
                      min(1, args.green),
                      min(1, args.blue))
@@ -554,6 +646,7 @@ if __name__ == "__main__":
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
     TransparentWindow(output_filename=args.output,
                       svgfiles=args.svgfiles,
+                      geometry=geometry,
                       websock_url=args.socket)
     
     Gtk.main()
