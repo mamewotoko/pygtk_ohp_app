@@ -30,7 +30,7 @@ from gi.repository import Gtk  # noqa E402
 from gi.repository import Gdk  # noqa E402
 from gi.repository import GLib  # noqa E402
 
-APP_TITLE = "Gtk3 OHP"
+APP_DEFAULT_TITLE = "Gtk3 OHP"
 CLEAR_SHAPES_ON_MESSAGE = False
 # initial of color name should be different
 COLOR_KEYS = ["red", "navy", "green", "black", "pink",
@@ -54,7 +54,6 @@ COLOR_CONFIG = {
 PEN_WIDTH = [1, 2, 3, 5, 8, 13, 21]
 FRAME_WIDTH = 4
 FRAME_COLOR = (1, 0, 0)
-CURRENT_COLOR = None
 
 COMMAND_MASK = 0x10000010
 LINE_WIDTH = 5
@@ -178,10 +177,18 @@ class TransparentWindow(Gtk.Window):
                  svgfiles=[],
                  geometry=None,
                  transparent=True,
+                 foregrond_color=(0, 1, 0),
+                 background_color=(1, 1, 1),
+                 line_width=5,
+                 title=APP_DEFAULT_TITLE,
                  websock_url=None):
         Gtk.Window.__init__(self)
         self.shapes = []
-        self.last_load_len = 0
+        self.foregrond_color = foregrond_color
+        self.background_color = background_color
+        self.line_width = line_width
+        self.title = title
+        self.lambdalast_load_len = 0
         self.connect("destroy", Gtk.main_quit)
         self.button_pressed = False
         self.drawing_line = False
@@ -189,7 +196,8 @@ class TransparentWindow(Gtk.Window):
         self.tmp_filename = uuid.uuid4().hex + ".svg"
 
         screen = self.get_screen()
-        if transparent:
+        self.transparent = transparent
+        if self.transparent:
             visual = screen.get_rgba_visual()
             if visual and screen.is_composited():
                 self.set_visual(visual)
@@ -200,11 +208,15 @@ class TransparentWindow(Gtk.Window):
         if geometry is None:
             self.width = screen.get_width()
             self.height = screen.get_height() - STATUS_BAR_HEIGHT
+            self.x_offset = 0
+            self.y_offset = 0
         else:
-            (self.width, self.height) = geometry
+            (self.width, self.height, self.x_offset, self.y_offset) = geometry
+        self.move(self.x_offset, self.y_offset)
         self.set_size_request(self.width, self.height)
         self.set_resizable(True)
-
+        self.set_title(self.title)
+        
         self.darea = Gtk.DrawingArea()
         self.darea.connect("draw", self.on_draw)
         self.darea.set_events(
@@ -223,21 +235,21 @@ class TransparentWindow(Gtk.Window):
         self.darea.connect("button-release-event", self.on_button_release)
         self.darea.connect("motion-notify-event", self.on_move)
         self.connect("key-press-event", self.on_key_press)
-
-        self.set_title(APP_TITLE)
-        self.set_position(Gtk.WindowPosition.CENTER)
             
         self.connect("delete-event", Gtk.main_quit)
         self.set_app_paintable(True)
         self.set_keep_above(True)
         # if linux
-        os_release = platform.system()
-        if os_release == "Linux":
-            self.set_decorated(False)
+        # os_release = platform.system()
+        # if os_release == "Linux":
+        #     self.set_decorated(False)
+        self.set_decorated(False)
 
         for svgfile in svgfiles:
             result = self.load_svg_file(svgfile)
             self.shapes.extend(result)
+
+        self.present()
             
         def on_open(ws):
             print("on_open")
@@ -366,9 +378,6 @@ class TransparentWindow(Gtk.Window):
         dwg.save()
 
     def on_key_press(self, wid, event):
-        global CURRENT_COLOR
-        global LINE_WIDTH
-
         ctrl = (
             (event.state & Gdk.ModifierType.CONTROL_MASK)
             == Gdk.ModifierType.CONTROL_MASK
@@ -410,7 +419,7 @@ class TransparentWindow(Gtk.Window):
                     {
                         "position": self.last_position,
                         "type": "text",
-                        "color": CURRENT_COLOR,
+                        "color": self.foregrond_color,
                         "text": text,
                     }
                 )
@@ -426,9 +435,9 @@ class TransparentWindow(Gtk.Window):
         else:
             color_name = KEY2COLOR_NAME.get(event.keyval)
             if color_name is not None:
-                CURRENT_COLOR = COLOR_NAME2COLOR[color_name]
+                self.foregrond_color = COLOR_NAME2COLOR[color_name]
             elif event.keyval in range(ord("1"), ord(str(len(PEN_WIDTH))) + 1):
-                LINE_WIDTH = PEN_WIDTH[event.keyval - ord("1")]
+                self.line_width = PEN_WIDTH[event.keyval - ord("1")]
 
     def draw_line(self, wid, cr, points):
         if len(points) < 2:
@@ -444,6 +453,12 @@ class TransparentWindow(Gtk.Window):
         cr.stroke()
 
     def on_draw(self, wid, cr):
+        # TODO: reduce operation
+        if not self.transparent:
+            cr.set_source_rgba(*self.background_color)
+            cr.rectangle(0, 0, self.width, self.height)
+            cr.fill()
+        
         for shape_info in self.shapes:
             shape_type = shape_info["type"]
             if shape_type == "text":
@@ -459,7 +474,7 @@ class TransparentWindow(Gtk.Window):
                     url = None
                 color = shape_info["color"]
                 cr.set_source_rgb(*color)
-                cr.set_line_width(LINE_WIDTH)
+                cr.set_line_width(self.line_width)
                 cr.set_font_size(FONT_SIZE)
                 if FONT_NAME is not None:
                     cr.select_font_face(
@@ -502,10 +517,8 @@ class TransparentWindow(Gtk.Window):
                 print("unknown shpae: " + shape_type)
 
         if self.drawing_line:
-            cr.set_source_rgb(CURRENT_COLOR[0],
-                              CURRENT_COLOR[1],
-                              CURRENT_COLOR[2])
-            cr.set_line_width(LINE_WIDTH)
+            cr.set_source_rgb(*self.foregrond_color)
+            cr.set_line_width(self.line_width)
 
             self.draw_line(wid, cr, self.coords)
         # draw frame
@@ -566,8 +579,8 @@ class TransparentWindow(Gtk.Window):
                 self.shapes.append(
                     {
                         "type": "line",
-                        "color": CURRENT_COLOR,
-                        "width": LINE_WIDTH,
+                        "color": self.foregrond_color,
+                        "width": self.line_width,
                         "points": self.coords,
                     }
                 )
@@ -606,17 +619,25 @@ def make_color_table():
     return (key2color_name, color_name2color)
 
 
+def int_or_zero(s):
+    if s is None:
+        return 0
+    else:
+        return int(s)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-r", "--red", type=float, default=0.0)
-    parser.add_argument("-g", "--green", type=float, default=1.0)
-    parser.add_argument("-b", "--blue", type=float, default=0.0)
-    parser.add_argument("-l", "--line-width", type=float, default=4.0)
-    parser.add_argument("-f", "--font", type=str, default=None)
+    parser.add_argument("--foreground-color", type=str, default="0,1,0")
+    parser.add_argument("--background-color", type=str, default="1,1,1")
+    parser.add_argument("--line-width", type=float, default=4.0)
+    parser.add_argument("--font", type=str, default=None)
     parser.add_argument("-o", "--output", type=str, default="ohp.svg")
     parser.add_argument("-s", "--socket", type=str, default=None)
     parser.add_argument("--geometry", type=str, default=None)
+    parser.add_argument("--title", type=str, default=APP_DEFAULT_TITLE)
     parser.add_argument("--opaque", action="store_true")
+
     parser.add_argument("svgfiles", metavar="svgfile", type=str, nargs="*", default=[])
 
     args = parser.parse_args()
@@ -633,16 +654,24 @@ if __name__ == "__main__":
             FONT_NAME = "TakaoGothic"
         elif os_release == "Windows":
             FONT_NAME = "meiryo"
-    geometery = None
+    geometry = None
     if args.geometry:
-        m = re.match(r"(\d+)x(\d+)", args.geometry)
+        m = re.match(r"(\d+)x(\d+)(+(\d+))(+(\d+))", args.geometry)
         if m is not None:
-            geometry = (int(m.group(1)), int(m.group(2)))
-    
-    CURRENT_COLOR = (min(1, args.red),
-                     min(1, args.green),
-                     min(1, args.blue))
-    LINE_WIDTH = args.line_width
+            geometry = (int(m.group(1)),
+                        int(m.group(2)),
+                        int_or_zero(4),
+                        int_or_zero(6))
+
+    (r, g, b) = args.foreground_color.split(",")
+    foreground_color = (min(1, float(r)),
+                        min(1, float(g)),
+                        min(1, float(b)))
+    (r, g, b) = args.background_color.split(",")
+    background_color = (min(1, float(r)),
+                        min(1, float(g)),
+                        min(1, float(b)))
+    line_width = args.line_width
     (KEY2COLOR_NAME, COLOR_NAME2COLOR) = make_color_table()
 
     if os_release != "Windows":
@@ -651,6 +680,10 @@ if __name__ == "__main__":
                       svgfiles=args.svgfiles,
                       geometry=geometry,
                       transparent=not args.opaque,
+                      foregrond_color=foreground_color,
+                      background_color=(1, 1, 1),
+                      line_width=line_width,
+                      title=args.title,
                       websock_url=args.socket)
     
     Gtk.main()
