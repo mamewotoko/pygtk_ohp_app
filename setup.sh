@@ -20,7 +20,7 @@ elif [ -f /etc/lsb-release ]; then
     sudo apt-get install -y python3 python3-dev python3-pip libgtk-3-dev python3-setuptools xvfb pkg-config
     python3 -m pip install -r requirements.txt
 
-elif [[ "$UNAME" == "MINGW64_NT"* ]]; then
+elif [[ "$UNAME" == "MINGW64_NT"* ]] || [[ "$UNAME" == "MSYS_NT"* ]]; then
     # mingw64
     pacman -Syu --noconfirm
     pacman -Sy --noconfirm mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-gobject 
