@@ -25,7 +25,7 @@ elif [[ "$UNAME" == "MINGW64_NT"* ]]; then
     pacman -Syu --noconfirm
     pacman -Sy --noconfirm mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-gobject 
     pacman -Sy --noconfirm mingw-w64-x86_64-python3-setuptools mingw-w64-x86_64-python3-pip
-    python3 -m pip install svgwrite pycairo
+    python3 -m pip install -r requirements.txt
 
 else
     echo unsupported os
