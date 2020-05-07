@@ -177,6 +177,7 @@ class TransparentWindow(Gtk.Window):
                  output_filename="ohp.svg",
                  svgfiles=[],
                  geometry=None,
+                 transparent=True,
                  websock_url=None):
         Gtk.Window.__init__(self)
         self.shapes = []
@@ -188,9 +189,10 @@ class TransparentWindow(Gtk.Window):
         self.tmp_filename = uuid.uuid4().hex + ".svg"
 
         screen = self.get_screen()
-        visual = screen.get_rgba_visual()
-        if visual and screen.is_composited():
-            self.set_visual(visual)
+        if transparent:
+            visual = screen.get_rgba_visual()
+            if visual and screen.is_composited():
+                self.set_visual(visual)
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         # TODO use monitor api
@@ -614,6 +616,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output", type=str, default="ohp.svg")
     parser.add_argument("-s", "--socket", type=str, default=None)
     parser.add_argument("--geometry", type=str, default=None)
+    parser.add_argument("--opaque", action="store_true")
     parser.add_argument("svgfiles", metavar="svgfile", type=str, nargs="*", default=[])
 
     args = parser.parse_args()
@@ -647,6 +650,7 @@ if __name__ == "__main__":
     TransparentWindow(output_filename=args.output,
                       svgfiles=args.svgfiles,
                       geometry=geometry,
+                      transparent=not args.opaque,
                       websock_url=args.socket)
     
     Gtk.main()
