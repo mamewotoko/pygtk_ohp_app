@@ -82,7 +82,7 @@ class TransparentWindow(Gtk.Window):
         else:
             color = COLOR_NAME2COLOR.get(s, (0, 0, 0))
         return color
-        
+
     def visit(self, element, transform, result):
         for child in element:
             if child.tag in ["{http://www.w3.org/2000/svg}g",
@@ -166,13 +166,13 @@ class TransparentWindow(Gtk.Window):
             # image
             # elif child.tag == "{http://www.w3.org/2000/svg}image":
         return result
-        
+
     def load_svg_file(self, svgfile):
         tree = ET.parse(svgfile)
         root = tree.getroot()
         idm = cairo.Matrix(1, 0, 0, 1, 0, 0)
         return self.visit(root, idm, [])
-    
+
     def __init__(self,
                  output_filename="ohp.svg",
                  svgfiles=[],
@@ -217,7 +217,7 @@ class TransparentWindow(Gtk.Window):
         self.set_size_request(self.width, self.height)
         self.set_resizable(True)
         self.set_title(self.title)
-        
+
         self.darea = Gtk.DrawingArea()
         self.darea.connect("draw", self.on_draw)
         self.darea.set_events(
@@ -236,7 +236,7 @@ class TransparentWindow(Gtk.Window):
         self.darea.connect("button-release-event", self.on_button_release)
         self.darea.connect("motion-notify-event", self.on_move)
         self.connect("key-press-event", self.on_key_press)
-            
+
         self.connect("delete-event", Gtk.main_quit)
         self.set_app_paintable(True)
         self.set_keep_above(True)
@@ -251,7 +251,7 @@ class TransparentWindow(Gtk.Window):
             self.shapes.extend(result)
 
         self.present()
-            
+
         def on_open(ws):
             print("on_open")
 
@@ -265,7 +265,7 @@ class TransparentWindow(Gtk.Window):
             self.shapes.extend(self.load_svg_file(self.tmp_filename))
             self.shapes.extend(local_shapes)
             self.redraw()
-            
+
         def on_close(ws):
             print("websocket closed")
             self.start_websocket()
@@ -288,7 +288,7 @@ class TransparentWindow(Gtk.Window):
         else:
             self.websock_url = None
             self.websock = None
-        
+
         self.show_all()
 
     def start_websocket(self):
@@ -304,7 +304,7 @@ class TransparentWindow(Gtk.Window):
                 self.websock_running = False
         if not self.websock_running:
             thread.start_new_thread(run, ())
-        
+
     def fullscreen(self):
         screen = self.get_screen()
         self.height = screen.get_height()
@@ -327,7 +327,7 @@ class TransparentWindow(Gtk.Window):
 
     def redraw(self):
         self.darea.queue_draw()
-        
+
     def send(self):
         if self.websock is None:
             print("no websock")
@@ -374,7 +374,7 @@ class TransparentWindow(Gtk.Window):
                         fill=svgwrite.rgb(*color, "%"),
                     )
                 )
-                
+
             # elif shape_type == "image":
         dwg.save()
 
@@ -459,7 +459,7 @@ class TransparentWindow(Gtk.Window):
             cr.set_source_rgba(*self.background_color)
             cr.rectangle(0, 0, self.width, self.height)
             cr.fill()
-        
+
         for shape_info in self.shapes:
             shape_type = shape_info["type"]
             if shape_type == "text":
@@ -606,7 +606,7 @@ def hex2float(h):
 def make_color_table():
     key2color_name = {}
     color_name2color = {}
-    
+
     for name in COLOR_KEYS:
         color_code = COLOR_CONFIG[name]
         keycode = ord(name[0:1].upper())
@@ -616,7 +616,7 @@ def make_color_table():
         color_code = COLOR_CONFIG[name]
         color = hex2float(color_code)
         color_name2color[name] = color
-        
+
     return (key2color_name, color_name2color)
 
 
@@ -687,5 +687,5 @@ if __name__ == "__main__":
                       line_width=line_width,
                       title=args.title,
                       websock_url=args.socket)
-    
+
     Gtk.main()
