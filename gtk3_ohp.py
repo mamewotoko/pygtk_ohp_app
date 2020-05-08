@@ -15,6 +15,7 @@ import platform
 import re
 import signal
 import svgwrite
+import sys
 import traceback
 try:
     import thread
@@ -674,6 +675,7 @@ if __name__ == "__main__":
     line_width = args.line_width
     (KEY2COLOR_NAME, COLOR_NAME2COLOR) = make_color_table()
 
+    Gtk.init(sys.argv)
     if os_release != "Windows":
         GLib.unix_signal_add(GLib.PRIORITY_DEFAULT, signal.SIGINT, Gtk.main_quit)
     TransparentWindow(output_filename=args.output,
