@@ -22,7 +22,9 @@ elif [ -f /etc/lsb-release ]; then
 
 elif [ -f /etc/redhat-release ]; then
     # redhat, centos
-    yum install -y install gcc gobject-introspection-devel cairo-devel pkg-config python3-devel gtk3 python3-pip
+    sudo yum install -y install gcc gobject-introspection-devel cairo-devel \
+         pkg-config python3-devel gtk3 python3-pip pygobject3-devel cairo-gobject-devel
+    python3 -m pip install PyGObject pycairo
     python3 -m pip install -r requirements.txt
 
 elif [[ "$UNAME" == "MINGW64_NT"* ]]; then
