@@ -19,6 +19,7 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 * Ubuntu (Linux)
   * [Ubuntu 18.04](https://www.ubuntulinux.jp/News/ubuntu1804)
   * [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
+* [CentOS7](https://wiki.centos.org/Download)
 * [MSYS2](https://www.msys2.org/) がインストールされたWindows 10
 
 ## 使い方

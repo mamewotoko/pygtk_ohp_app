@@ -20,15 +20,25 @@ elif [ -f /etc/lsb-release ]; then
     sudo apt-get install -y python3 python3-dev python3-pip libgtk-3-dev python3-setuptools xvfb pkg-config
     python3 -m pip install -r requirements.txt
 
-elif [ -f /etc/redhat-release ]; then
-    # redhat, centos
-    sudo yum install -y install gcc gobject-introspection-devel cairo-devel \
+elif [ -f /etc/redhat-release ] && grep "release 7" /etc/redhat-release; then
+    # redhat, centos7
+    sudo yum install -y gcc gobject-introspection-devel cairo-devel \
          pkg-config python3-devel gtk3 python3-pip pygobject3-devel cairo-gobject-devel
     sudo python3 -m pip install PyGObject pycairo
     sudo python3 -m pip install -r requirements.txt
     # install x11
     # http://morrey22.hatenablog.com/entry/2013/04/14/212837
     # sudo yum -y groups install "GNOME Desktop" 
+
+# elif [ -f /etc/redhat-release ] && grep "release 8" /etc/redhat-release; then
+#     # redhat, centos8
+#     sudo yum install -y gcc cairo-devel \
+#          pkg-config python3-devel gtk3 python3-pip cairo-gobject-devel
+#     sudo python3 -m pip install PyGObject pycairo
+#     sudo python3 -m pip install -r requirements.txt
+#     # install x11
+#     # http://morrey22.hatenablog.com/entry/2013/04/14/212837
+#     # sudo yum -y groups install "GNOME Desktop" 
 
 elif [[ "$UNAME" == "MINGW64_NT"* ]]; then
     # msys2 on PC
