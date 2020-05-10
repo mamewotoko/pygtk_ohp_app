@@ -52,13 +52,14 @@ COLOR_CONFIG = {
     "purple": "800080",
     "fuchsia": "FF00FF",
 }
-PEN_WIDTH = [1, 2, 3, 5, 8, 13, 21]
+PEN_WIDTH_LIST = [1, 2, 3, 5, 8, 13, 21]
+FONT_SIZE_LIST = [12, 24, 48, 72, 96, 120, 240, 360, 480]
 FRAME_WIDTH = 4
 FRAME_COLOR = (1, 0, 0)
 
 COMMAND_MASK = 0x10000010
 LINE_WIDTH = 5
-FONT_SIZE = 24
+DEFAULT_FONT_SIZE = 24
 FONT_NAME = None
 # Ctrl-z: undo
 # Ctrl-y: redo
@@ -118,6 +119,7 @@ class TransparentWindow(Gtk.Window):
                 stroke = child.attrib.get("stroke")
                 if stroke is None:
                     stroke = child.attrib.get("stroke", "red")
+                font_size = int(child.attrib.get("font_size", str(DEFAULT_FONT_SIZE)))
                 color = self.to_color(stroke)
                 # font = child.attrib["font-family"]
                 t = ET.tostring(child,
@@ -131,6 +133,7 @@ class TransparentWindow(Gtk.Window):
                 print(child.attrib)
                 result.append({"type": "text",
                                "position": position,
+                               "font_size": font_size,
                                "color": color,
                                "text": text})
             elif child.tag == "{http://www.w3.org/2000/svg}rect":
@@ -181,6 +184,7 @@ class TransparentWindow(Gtk.Window):
                  foregrond_color=(0, 1, 0),
                  background_color=(1, 1, 1),
                  line_width=5,
+                 font_size=DEFAULT_FONT_SIZE,
                  title=APP_DEFAULT_TITLE,
                  websock_url=None):
         Gtk.Window.__init__(self)
@@ -188,6 +192,7 @@ class TransparentWindow(Gtk.Window):
         self.foregrond_color = foregrond_color
         self.background_color = background_color
         self.line_width = line_width
+        self.font_size = font_size
         self.title = title
         self.lambdalast_load_len = 0
         self.connect("destroy", Gtk.main_quit)
@@ -244,7 +249,7 @@ class TransparentWindow(Gtk.Window):
         # os_release = platform.system()
         # if os_release == "Linux":
         #     self.set_decorated(False)
-        self.set_decorated(False)
+        # self.set_decorated(False)
 
         for svgfile in svgfiles:
             result = self.load_svg_file(svgfile)
@@ -356,7 +361,7 @@ class TransparentWindow(Gtk.Window):
                 dwg.add(
                     dwg.text(
                         text,
-                        font_size=FONT_SIZE,
+                        font_size=self.font_size,
                         font_family=FONT_NAME,
                         insert=shape["position"],
                         stroke=svgwrite.rgb(*color, "%"),
@@ -420,6 +425,7 @@ class TransparentWindow(Gtk.Window):
                     {
                         "position": self.last_position,
                         "type": "text",
+                        "font_size": self.font_size,
                         "color": self.foregrond_color,
                         "text": text,
                     }
@@ -437,8 +443,10 @@ class TransparentWindow(Gtk.Window):
             color_name = KEY2COLOR_NAME.get(event.keyval)
             if color_name is not None:
                 self.foregrond_color = COLOR_NAME2COLOR[color_name]
-            elif event.keyval in range(ord("1"), ord(str(len(PEN_WIDTH))) + 1):
-                self.line_width = PEN_WIDTH[event.keyval - ord("1")]
+            if event.keyval in range(ord("1"), ord(str(len(PEN_WIDTH_LIST))) + 1):
+                self.line_width = PEN_WIDTH_LIST[event.keyval - ord("1")]
+            if event.keyval in range(ord("1"), ord(str(len(FONT_SIZE_LIST))) + 1):
+                self.font_size = FONT_SIZE_LIST[event.keyval - ord("1")]
 
     def draw_line(self, wid, cr, points):
         if len(points) < 2:
@@ -476,7 +484,8 @@ class TransparentWindow(Gtk.Window):
                 color = shape_info["color"]
                 cr.set_source_rgb(*color)
                 cr.set_line_width(self.line_width)
-                cr.set_font_size(FONT_SIZE)
+                font_size = shape_info.get("font_size", DEFAULT_FONT_SIZE)
+                cr.set_font_size(font_size)
                 if FONT_NAME is not None:
                     cr.select_font_face(
                         FONT_NAME, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL
@@ -686,6 +695,7 @@ if __name__ == "__main__":
                       background_color=(1, 1, 1),
                       line_width=line_width,
                       title=args.title,
+                      font_size=DEFAULT_FONT_SIZE,
                       websock_url=args.socket)
 
     Gtk.main()
