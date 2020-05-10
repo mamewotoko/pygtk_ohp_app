@@ -52,7 +52,7 @@ COLOR_CONFIG = {
     "purple": "800080",
     "fuchsia": "FF00FF",
 }
-PEN_WIDTH_LIST = [1, 2, 3, 5, 8, 13, 21]
+PEN_WIDTH_LIST = [1, 2, 3, 5, 8, 13, 21, 34, 55]
 FONT_SIZE_LIST = [12, 24, 48, 72, 96, 120, 240, 360, 480]
 FRAME_WIDTH = 4
 FRAME_COLOR = (1, 0, 0)
@@ -63,7 +63,6 @@ DEFAULT_FONT_SIZE = 24
 FONT_NAME = None
 # Ctrl-z: undo
 # Ctrl-y: redo
-STATUS_BAR_HEIGHT = 30
 COLOR_NAME2COLOR = None
 KEY2COLOR_NAME = None
 
@@ -121,7 +120,6 @@ class TransparentWindow(Gtk.Window):
                     stroke = child.attrib.get("stroke", "red")
                 font_size = int(child.attrib.get("font_size", str(DEFAULT_FONT_SIZE)))
                 color = self.to_color(stroke)
-                # font = child.attrib["font-family"]
                 t = ET.tostring(child,
                                 encoding="utf-8",
                                 method="text").decode("utf-8")
@@ -213,7 +211,7 @@ class TransparentWindow(Gtk.Window):
         self.is_fullscreen = True
         if geometry is None:
             self.width = screen.get_width()
-            self.height = screen.get_height() - STATUS_BAR_HEIGHT
+            self.height = screen.get_height()
             self.x_offset = 0
             self.y_offset = 0
         else:
