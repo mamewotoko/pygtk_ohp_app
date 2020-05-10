@@ -11,6 +11,7 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 
 ![ubuntu18.04](image/ubuntu1804.png) ![ubuntu20.04](image/ubuntu2004.png)
 
+![Raspbian9](image/raspberrypi.png)
 
 ## 前提
 以下のいずれかを準備してください
@@ -21,6 +22,7 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
   * [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
 * [CentOS7](https://wiki.centos.org/Download)
 * [MSYS2](https://www.msys2.org/) がインストールされたWindows 10
+* [Raspbian Gnu/Linux 9 (stretch)](http://downloads.raspberrypi.org/raspbian/images/)
 
 ## 使い方
 ### 準備
@@ -28,6 +30,28 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 
     ```
     sh setup.sh
+    ```
+
+### 追加の準備(raspberry piで実行する場合)
+
+1. X11の設定ファイル `/etc/X11/vncserver-virtual.conf` ? を変更します。
+
+    ```
+    Section "Extensions"
+      Option "Coposite" "Enable"
+    EndSection
+    ```
+
+2. raspberry piを再起動します。
+
+    ```
+    sudo reboot
+    ```
+    
+3. 透明なウィンドウをサポートするためコマンドを実行します。
+
+    ```
+    xcompmgr -c &
     ```
 
 ### 起動
