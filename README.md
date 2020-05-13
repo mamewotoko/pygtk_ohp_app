@@ -75,6 +75,10 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 コピーした画像、テキストの貼り付け|Ctrl-v または Command-v
 全削除|Ctrl-d または Command-d
 高さを縮める、広げる|Ctrl-f または Command-f
+ひとつ後にページを追加|Ctrl-Shift-n または　Command-Shift-n
+ひとつ前にページを追加|Ctrl-Shift-p または　Command-Shift-p
+次のページを表示|Ctrl-n または　Command-n
+前のページを表示|Ctrl-p または　Command-p
 
 テキスト、線の色変更
 
