@@ -174,6 +174,37 @@ class TransparentWindow(Gtk.Window):
         idm = cairo.Matrix(1, 0, 0, 1, 0, 0)
         return self.visit(root, idm, [])
 
+    def add_tmp_file(self):
+        self.page_filename_list.append(uuid.uuid4().hex + ".svg")
+        self.pages = [[]]
+        
+    def insert_next_page(self):
+        self.page_index += 1
+        self.page_filename_list.insert(self.page_index,
+                                      uuid.uuid4().hex + ".svg")
+        self.pages.insert(self.page_index, [])
+        self.redraw()
+        
+    def insert_previous_page(self):
+        self.page_filename_list.insert(self.page_index,
+                                      uuid.uuid4().hex + ".svg")
+        self.pages.insert(self.page_index, [])
+        self.redraw()
+        
+    def next_page(self):
+        self.page_index += 1
+        self.page_index = self.page_index % len(self.pages)
+        self.redraw()
+
+    def previous_page(self):
+        self.page_index -= 1
+        if self.page_index < 0:
+            self.page_index = len(self.pages) - 1
+        self.redraw()
+
+    def get_current_shapes(self):
+        return self.pages[self.page_index]
+        
     def __init__(self,
                  output_filename="ohp.svg",
                  svgfiles=[],
@@ -186,7 +217,9 @@ class TransparentWindow(Gtk.Window):
                  title=APP_DEFAULT_TITLE,
                  websock_url=None):
         Gtk.Window.__init__(self)
-        self.shapes = []
+        self.page_index = 0
+        self.pages = []
+        self.page_filename_list = []
         self.foregrond_color = foregrond_color
         self.background_color = background_color
         self.line_width = line_width
@@ -197,7 +230,7 @@ class TransparentWindow(Gtk.Window):
         self.button_pressed = False
         self.drawing_line = False
         self.output_filename = output_filename
-        self.tmp_filename = uuid.uuid4().hex + ".svg"
+        # self.tmp_filename = uuid.uuid4().hex + ".svg"
 
         screen = self.get_screen()
         self.transparent = transparent
@@ -229,7 +262,7 @@ class TransparentWindow(Gtk.Window):
             | Gdk.EventMask.BUTTON_RELEASE_MASK
         )
         self.add(self.darea)
-
+        self.insert_previous_page()
         self.redo_shapes = []
         self.coords = []
         self.link = []
@@ -249,9 +282,10 @@ class TransparentWindow(Gtk.Window):
         #     self.set_decorated(False)
         # self.set_decorated(False)
 
+        shapes = self.get_current_shapes()
         for svgfile in svgfiles:
             result = self.load_svg_file(svgfile)
-            self.shapes.extend(result)
+            shapes.extend(result)
 
         self.present()
 
@@ -259,14 +293,15 @@ class TransparentWindow(Gtk.Window):
             print("on_open")
 
         def on_message(ws, message):
-            # TODO merge shapes
-            local_shapes = self.shapes[self.last_load_len:]
-            self.shapes = []
-            print(self.tmp_filename)
-            with open(self.tmp_filename, "w") as f:
+            # TODO merge shapes, craate svg element for loaded image
+            shapes = self.get_current_shapes()
+            local_shapes = shapes[self.last_load_len:]
+            shapes.clear()
+            tmp_filename = self.page_filename_list[self.page_index]
+            with open(tmp_filename, "w") as f:
                 f.write(message)
-            self.shapes.extend(self.load_svg_file(self.tmp_filename))
-            self.shapes.extend(local_shapes)
+            shapes.extend(self.load_svg_file(tmp_filename))
+            shapes.extend(local_shapes)
             self.redraw()
 
         def on_close(ws):
@@ -322,7 +357,7 @@ class TransparentWindow(Gtk.Window):
         self.is_fullscreen = False
 
     def clear(self):
-        self.shapes = []
+        self.pages[self.page_index].clear()
         self.redo_shapes = []
         self.coords = []
         self.link = []
@@ -340,8 +375,8 @@ class TransparentWindow(Gtk.Window):
 
     def save(self):
         dwg = svgwrite.Drawing(self.output_filename, profile="full")
-
-        for shape in self.shapes:
+        shapes = self.get_current_shapes()
+        for shape in shapes:
             shape_type = shape["type"]
             if shape_type == "line":
                 # color 0 - 1.0 -> percentage
@@ -387,16 +422,20 @@ class TransparentWindow(Gtk.Window):
             == Gdk.ModifierType.CONTROL_MASK
             or (event.state & COMMAND_MASK) == COMMAND_MASK
         )
-
+        shift = (
+            (event.state & Gdk.ModifierType.SHIFT_MASK)
+            == Gdk.ModifierType.SHIFT_MASK
+        )
+        shapes = self.get_current_shapes()
         if ctrl and event.keyval == Gdk.KEY_q:
             # TODO: ask save data or not
             Gtk.main_quit()
-        elif ctrl and event.keyval == Gdk.KEY_z and 0 < len(self.shapes):
-            self.redo_shapes.append(self.shapes[-1])
-            del self.shapes[-1]
+        elif ctrl and event.keyval == Gdk.KEY_z and 0 < len(shapes):
+            self.redo_shapes.append(shapes[-1])
+            shapes[-1]
             self.redraw()
         elif ctrl and event.keyval == Gdk.KEY_y and 0 < len(self.redo_shapes):
-            self.shapes.append(self.redo_shapes[-1])
+            shapes.append(self.redo_shapes[-1])
             del self.redo_shapes[-1]
             self.redraw()
         elif ctrl and event.keyval == Gdk.KEY_s:
@@ -419,7 +458,7 @@ class TransparentWindow(Gtk.Window):
             text = self.clipboard.wait_for_text()
             if text is not None:
                 text = text.strip()
-                self.shapes.append(
+                shapes.append(
                     {
                         "position": self.last_position,
                         "type": "text",
@@ -432,11 +471,19 @@ class TransparentWindow(Gtk.Window):
                 return
             image = self.clipboard.wait_for_image()
             if image is not None:
-                self.shapes.append(
+                shapes.append(
                     {"position": self.last_position, "type": "image", "image": image}
                 )
                 self.redraw()
                 return
+        elif ctrl and shift and event.keyval == Gdk.KEY_N:
+            self.insert_next_page()
+        elif ctrl and shift and event.keyval == Gdk.KEY_P:
+            self.insert_previous_page()
+        elif ctrl and event.keyval == Gdk.KEY_n:
+            self.next_page()
+        elif ctrl and event.keyval == Gdk.KEY_p:
+            self.previous_page()
         else:
             color_name = KEY2COLOR_NAME.get(event.keyval)
             if color_name is not None:
@@ -466,7 +513,8 @@ class TransparentWindow(Gtk.Window):
             cr.rectangle(0, 0, self.width, self.height)
             cr.fill()
 
-        for shape_info in self.shapes:
+        shapes = self.get_current_shapes()
+        for shape_info in shapes:
             shape_type = shape_info["type"]
             if shape_type == "text":
                 # text []()
@@ -581,10 +629,10 @@ class TransparentWindow(Gtk.Window):
             e.type == Gdk.EventType.BUTTON_RELEASE
             and e.button == MouseButtons.LEFT_BUTTON
         ):
-
+            shapes = self.get_current_shapes()
             if 1 < len(self.coords):
 
-                self.shapes.append(
+                shapes.append(
                     {
                         "type": "line",
                         "color": self.foregrond_color,
