@@ -30,6 +30,7 @@ gi.require_version("Gdk", "3.0")
 from gi.repository import Gtk  # noqa E402
 from gi.repository import Gdk  # noqa E402
 from gi.repository import GLib  # noqa E402
+from gi.repository import GdkPixbuf  # noqa E402
 
 APP_DEFAULT_TITLE = "Gtk3 OHP"
 CLEAR_SHAPES_ON_MESSAGE = False
@@ -217,6 +218,12 @@ class TransparentWindow(Gtk.Window):
                  title=APP_DEFAULT_TITLE,
                  websock_url=None):
         Gtk.Window.__init__(self)
+        dirname = os.path.abspath(os.path.dirname(__file__))
+        icon_path = "icon/suke_icon.png"
+        abs_path = os.path.join(dirname, icon_path)
+        if os.path.exists(abs_path):
+            print("set icon")
+            self.set_icon(GdkPixbuf.Pixbuf.new_from_file(abs_path))
         self.page_index = 0
         self.pages = []
         self.page_filename_list = []
@@ -474,7 +481,11 @@ class TransparentWindow(Gtk.Window):
             image = self.clipboard.wait_for_image()
             if image is not None:
                 shapes.append(
-                    {"position": self.last_position, "type": "image", "image": image}
+                    {
+                        "position": self.last_position,
+                        "type": "image",
+                        "image": image
+                    }
                 )
                 self.redraw()
         elif ctrl and shift and event.keyval == Gdk.KEY_N:
