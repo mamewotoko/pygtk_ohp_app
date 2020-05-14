@@ -434,7 +434,7 @@ class TransparentWindow(Gtk.Window):
             Gtk.main_quit()
         elif ctrl and event.keyval == Gdk.KEY_z and 0 < len(shapes):
             self.redo_shapes.append(shapes[-1])
-            shapes[-1]
+            del shapes[-1]
             self.redraw()
         elif ctrl and event.keyval == Gdk.KEY_y and 0 < len(self.redo_shapes):
             shapes.append(self.redo_shapes[-1])
