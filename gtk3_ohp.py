@@ -239,6 +239,8 @@ class TransparentWindow(Gtk.Window):
             if visual and screen.is_composited():
                 self.set_visual(visual)
 
+        self.set_hide_titlebar_when_maximized(True)
+                
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         # TODO use monitor api
         self.is_fullscreen = True
@@ -475,7 +477,6 @@ class TransparentWindow(Gtk.Window):
                     {"position": self.last_position, "type": "image", "image": image}
                 )
                 self.redraw()
-                return
         elif ctrl and shift and event.keyval == Gdk.KEY_N:
             self.insert_next_page()
         elif ctrl and shift and event.keyval == Gdk.KEY_P:
@@ -484,6 +485,9 @@ class TransparentWindow(Gtk.Window):
             self.next_page()
         elif ctrl and event.keyval == Gdk.KEY_p:
             self.previous_page()
+        elif ctrl and event.keyval == Gdk.KEY_t:
+            self.transparent = not self.transparent
+            self.redraw()
         else:
             color_name = KEY2COLOR_NAME.get(event.keyval)
             if color_name is not None:
