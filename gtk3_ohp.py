@@ -178,17 +178,17 @@ class TransparentWindow(Gtk.Window):
     def add_tmp_file(self):
         self.page_filename_list.append(uuid.uuid4().hex + ".svg")
         self.pages = [[]]
-        
+
     def insert_next_page(self):
         self.page_index += 1
         self.page_filename_list.insert(self.page_index,
-                                      uuid.uuid4().hex + ".svg")
+                                       uuid.uuid4().hex + ".svg")
         self.pages.insert(self.page_index, [])
         self.redraw()
         
     def insert_previous_page(self):
         self.page_filename_list.insert(self.page_index,
-                                      uuid.uuid4().hex + ".svg")
+                                       uuid.uuid4().hex + ".svg")
         self.pages.insert(self.page_index, [])
         self.redraw()
         
