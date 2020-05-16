@@ -185,13 +185,13 @@ class TransparentWindow(Gtk.Window):
                                        uuid.uuid4().hex + ".svg")
         self.pages.insert(self.page_index, [])
         self.redraw()
-        
+
     def insert_previous_page(self):
         self.page_filename_list.insert(self.page_index,
                                        uuid.uuid4().hex + ".svg")
         self.pages.insert(self.page_index, [])
         self.redraw()
-        
+
     def next_page(self):
         self.page_index += 1
         self.page_index = self.page_index % len(self.pages)
@@ -205,7 +205,7 @@ class TransparentWindow(Gtk.Window):
 
     def get_current_shapes(self):
         return self.pages[self.page_index]
-        
+
     def __init__(self,
                  output_filename="ohp.svg",
                  svgfiles=[],
@@ -247,7 +247,7 @@ class TransparentWindow(Gtk.Window):
                 self.set_visual(visual)
 
         self.set_hide_titlebar_when_maximized(True)
-                
+
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
         # TODO use monitor api
         self.is_fullscreen = True
