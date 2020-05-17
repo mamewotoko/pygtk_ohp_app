@@ -285,11 +285,6 @@ class TransparentWindow(Gtk.Window):
         self.connect("delete-event", Gtk.main_quit)
         self.set_app_paintable(True)
         self.set_keep_above(True)
-        # if linux
-        # os_release = platform.system()
-        # if os_release == "Linux":
-        #     self.set_decorated(False)
-        # self.set_decorated(False)
 
         shapes = self.get_current_shapes()
         for svgfile in svgfiles:
@@ -353,16 +348,15 @@ class TransparentWindow(Gtk.Window):
             thread.start_new_thread(run, ())
 
     def fullscreen(self):
-        screen = self.get_screen()
-        self.height = screen.get_height()
         self.set_size_request(self.width, self.height)
         self.resize(self.width, self.height)
         self.is_fullscreen = True
 
     def minimize(self):
-        self.height = 10
-        self.set_size_request(self.width, self.height)
-        self.resize(self.width, self.height)
+        # 10: min height
+        min_height = 10
+        self.set_size_request(self.width, min_height)
+        self.resize(self.width, min_height)
         self.is_fullscreen = False
 
     def clear(self):
@@ -456,10 +450,6 @@ class TransparentWindow(Gtk.Window):
                 self.minimize()
             else:
                 self.fullscreen()
-        elif ctrl and event.keyval == Gdk.KEY_g:
-            # toggle decorated
-            # mac pass key, mouse event to window behind this app window
-            self.set_decorated(not self.get_decorated())
         elif ctrl and event.keyval == Gdk.KEY_d:
             # clear
             self.clear()
@@ -699,6 +689,7 @@ def int_or_zero(s):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
     parser.add_argument("--foreground-color", type=str, default="0,1,0")
     parser.add_argument("--background-color", type=str, default="1,1,1")
     parser.add_argument("--line-width", type=float, default=4.0)
