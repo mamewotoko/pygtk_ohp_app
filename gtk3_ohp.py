@@ -179,11 +179,15 @@ class TransparentWindow(Gtk.Window):
         self.page_filename_list.append(uuid.uuid4().hex + ".svg")
         self.pages = [[]]
 
-    def insert_next_page(self):
+    def insert_next_page(self, overwrap=False):
+        if overwrap:
+            shapes = self.get_current_shapes().copy()
+        else:
+            shapes = []
         self.page_index += 1
         self.page_filename_list.insert(self.page_index,
                                        uuid.uuid4().hex + ".svg")
-        self.pages.insert(self.page_index, [])
+        self.pages.insert(self.page_index, shapes)
         self.redraw()
 
     def insert_previous_page(self):
@@ -430,6 +434,7 @@ class TransparentWindow(Gtk.Window):
             == Gdk.ModifierType.SHIFT_MASK
         )
         shapes = self.get_current_shapes()
+        print(event.keyval)
         if ctrl and event.keyval == Gdk.KEY_q:
             # TODO: ask save data or not
             Gtk.main_quit()
@@ -478,6 +483,9 @@ class TransparentWindow(Gtk.Window):
                     }
                 )
                 self.redraw()
+        elif event.keyval == Gdk.KEY_plus:
+            # add page and copy current shapes
+            self.insert_next_page(True)
         elif ctrl and shift and event.keyval == Gdk.KEY_N:
             self.insert_next_page()
         elif ctrl and shift and event.keyval == Gdk.KEY_P:
@@ -511,14 +519,7 @@ class TransparentWindow(Gtk.Window):
             start = p
         cr.stroke()
 
-    def on_draw(self, wid, cr):
-        # TODO: reduce operation
-        if not self.transparent:
-            cr.set_source_rgba(*self.background_color)
-            cr.rectangle(0, 0, self.width, self.height)
-            cr.fill()
-
-        shapes = self.get_current_shapes()
+    def draw_shapes(self, wid, cr, shapes):
         for shape_info in shapes:
             shape_type = shape_info["type"]
             if shape_type == "text":
@@ -577,6 +578,15 @@ class TransparentWindow(Gtk.Window):
             else:
                 print("unknown shpae: " + shape_type)
 
+    def on_draw(self, wid, cr):
+        # TODO: reduce operation
+        if not self.transparent:
+            cr.set_source_rgba(*self.background_color)
+            cr.rectangle(0, 0, self.width, self.height)
+            cr.fill()
+
+        self.draw_shapes(wid, cr, self.get_current_shapes())
+
         if self.drawing_line:
             cr.set_source_rgb(*self.foregrond_color)
             cr.set_line_width(self.line_width)
@@ -596,9 +606,9 @@ class TransparentWindow(Gtk.Window):
             cr.line_to(*point)
         cr.stroke()
 
-    def link_clicked(self, l, x, y):
-        lx = l["position"][0]
-        ly = l["position"][1]
+    def link_clicked(self, link, x, y):
+        lx = link["position"][0]
+        ly = link["position"][1]
         box_size = 20
         # TODO modify size
         return (
@@ -618,9 +628,9 @@ class TransparentWindow(Gtk.Window):
             and e.button == MouseButtons.LEFT_BUTTON
         ):
 
-            for l in self.link:
-                if self.link_clicked(l, e.x, e.y):
-                    self.open_link(l["url"])
+            for link in self.link:
+                if self.link_clicked(link, e.x, e.y):
+                    self.open_link(link["url"])
                     break
                 else:
                     print("not clicked")
