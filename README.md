@@ -22,7 +22,8 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
   * [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
 * [CentOS7](https://wiki.centos.org/Download)
 * [MSYS2](https://www.msys2.org/) がインストールされたWindows 10
-* [Raspbian Gnu/Linux 9 (stretch)](http://downloads.raspberrypi.org/raspbian/images/)
+* [Raspbian Gnu/Linux 9 (Stretch)](http://downloads.raspberrypi.org/raspbian/images/)
+* [Raspbian Gnu/Linux 10 (Buster)](http://downloads.raspberrypi.org/raspbian/images/)
 
 ## 使い方
 ### 準備
@@ -38,7 +39,7 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 
     ```
     Section "Extensions"
-      Option "Coposite" "Enable"
+      Option "Composite" "Enable"
     EndSection
     ```
 
@@ -47,7 +48,7 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
     ```
     sudo reboot
     ```
-    
+
 3. 透明なウィンドウをサポートするためコマンドを実行します。
 
     ```
@@ -168,5 +169,5 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 ```
 
 ----
-Takashi Masuyama < mamewotoko@gmail.com >  
+Takashi Masuyama < mamewotoko@gmail.com >
 https://mamewo.ddo.jp/
