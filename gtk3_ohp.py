@@ -99,9 +99,7 @@ class TransparentWindow(Gtk.Window):
                                                      float(m.group(5)),
                                                      float(m.group(6)))
                         print(transform)
-                        print(transform_new)
                         transform = transform.multiply(transform_new)
-                        print(transform)
                 self.visit(child, transform, result)
             elif child.tag == "{http://www.w3.org/2000/svg}polyline":
                 points = list(map(lambda s: tuple(map(lambda x: int(float(x)), s.split(","))),
@@ -115,7 +113,6 @@ class TransparentWindow(Gtk.Window):
                                "width": stroke_width})
             elif child.tag == "{http://www.w3.org/2000/svg}text":
                 position = (int(float(child.attrib["x"])), int(float(child.attrib["y"])))
-                print(child.attrib)
                 stroke = child.attrib.get("stroke")
                 if stroke is None:
                     stroke = child.attrib.get("stroke", "red")
@@ -124,12 +121,9 @@ class TransparentWindow(Gtk.Window):
                 t = ET.tostring(child,
                                 encoding="utf-8",
                                 method="text").decode("utf-8")
-                print("text {}".format(t))
                 text = ET.tostring(child,
                                    encoding="utf-8",
                                    method="xml").decode("utf-8")
-                print("text {}".format(text))
-                print(child.attrib)
                 result.append({"type": "text",
                                "position": position,
                                "font_size": font_size,
@@ -139,7 +133,6 @@ class TransparentWindow(Gtk.Window):
                 width = child.attrib["width"]
                 height = child.attrib["height"]
                 # TODO; use attribute not stylesheet
-                print(child.attrib)
                 color_name = child.attrib.get("fill")
                 if color_name is None:
                     class_name = child.attrib.get("class")
@@ -149,16 +142,12 @@ class TransparentWindow(Gtk.Window):
                         color_name = "red"
                 if color_name == "none":
                     continue
-                print("color_name of rect: {}".format(color_name))
                 color = self.to_color(color_name)
                 x = float(child.attrib.get("x", 0))
                 y = float(child.attrib.get("y", 0))
                 width = float(child.attrib.get("width", 10))
                 height = float(child.attrib.get("height", 10))
-                print("rect {}".format(transform))
                 position = transform.transform_point(x, y)
-                print(position)
-                print(transform)
                 result.append({"type": "rect",
                                "position": position,
                                "color": color,
@@ -226,7 +215,6 @@ class TransparentWindow(Gtk.Window):
         icon_path = "icon/suke_icon.png"
         abs_path = os.path.join(dirname, icon_path)
         if os.path.exists(abs_path):
-            print("set icon")
             self.set_icon(GdkPixbuf.Pixbuf.new_from_file(abs_path))
         self.page_index = 0
         self.pages = []
@@ -434,7 +422,6 @@ class TransparentWindow(Gtk.Window):
             == Gdk.ModifierType.SHIFT_MASK
         )
         shapes = self.get_current_shapes()
-        print(event.keyval)
         if ctrl and event.keyval == Gdk.KEY_q:
             # TODO: ask save data or not
             Gtk.main_quit()
@@ -525,7 +512,6 @@ class TransparentWindow(Gtk.Window):
             if shape_type == "text":
                 # text []()
                 text = shape_info["text"]
-                print("text: {}".format(text))
                 m = re.match(r"\[(.*)\]\((.*)\)", text)
                 if m is not None:
                     display_text = m.group(1)
@@ -568,7 +554,6 @@ class TransparentWindow(Gtk.Window):
                 width = shape_info["width"]
                 height = shape_info["height"]
                 position = shape_info["position"]
-                print(color)
                 cr.set_source_rgb(color[0], color[1], color[2])
                 cr.rectangle(position[0],
                              position[1],
@@ -632,8 +617,6 @@ class TransparentWindow(Gtk.Window):
                 if self.link_clicked(link, e.x, e.y):
                     self.open_link(link["url"])
                     break
-                else:
-                    print("not clicked")
             self.last_position = (e.x, e.y)
             self.coords.append([e.x, e.y])
             self.button_pressed = True
