@@ -35,7 +35,7 @@ from gi.repository import GdkPixbuf  # noqa E402
 APP_DEFAULT_TITLE = "Gtk3 OHP"
 CLEAR_SHAPES_ON_MESSAGE = False
 # initial of color name should be different
-COLOR_KEYS = ["red", "navy", "green", "black", "pink",
+COLOR_KEYS = ["red", "navy", "green", "black", "pink", "yellow",
               "murasaki", "white", "aqua", "orange"]
 COLOR_CONFIG = {
     "red": "FF0000",
@@ -174,6 +174,7 @@ class TransparentWindow(Gtk.Window):
         else:
             shapes = []
         self.page_index += 1
+        print("insert_next_page {} {}".format(overwrap, self.page_index))
         self.page_filename_list.insert(self.page_index,
                                        uuid.uuid4().hex + ".svg")
         self.pages.insert(self.page_index, shapes)
@@ -183,6 +184,13 @@ class TransparentWindow(Gtk.Window):
         self.page_filename_list.insert(self.page_index,
                                        uuid.uuid4().hex + ".svg")
         self.pages.insert(self.page_index, [])
+        self.redraw()
+
+    def delete_current_page(self):
+        if len(self.pages) == 1:
+            return
+        del self.pages[self.page_index]
+        self.page_index = min(self.page_index, len(self.pages)-1)
         self.redraw()
 
     def next_page(self):
@@ -213,9 +221,9 @@ class TransparentWindow(Gtk.Window):
         Gtk.Window.__init__(self)
         dirname = os.path.abspath(os.path.dirname(__file__))
         icon_path = "icon/suke_icon.png"
-        abs_path = os.path.join(dirname, icon_path)
-        if os.path.exists(abs_path):
-            self.set_icon(GdkPixbuf.Pixbuf.new_from_file(abs_path))
+        icon_abs_path = os.path.join(dirname, icon_path)
+        if os.path.exists(icon_abs_path):
+            self.set_icon(GdkPixbuf.Pixbuf.new_from_file(icon_abs_path))
         self.page_index = 0
         self.pages = []
         self.page_filename_list = []
@@ -422,6 +430,8 @@ class TransparentWindow(Gtk.Window):
             == Gdk.ModifierType.SHIFT_MASK
         )
         shapes = self.get_current_shapes()
+        print(event.keyval)
+        print(Gdk.KEY_plus)
         if ctrl and event.keyval == Gdk.KEY_q:
             # TODO: ask save data or not
             Gtk.main_quit()
@@ -473,7 +483,12 @@ class TransparentWindow(Gtk.Window):
         elif event.keyval == Gdk.KEY_plus:
             # add page and copy current shapes
             self.insert_next_page(True)
-        elif ctrl and shift and event.keyval == Gdk.KEY_N:
+        elif (ctrl and event.keyval == Gdk.KEY_t):
+            self.insert_next_page()
+        elif (ctrl and event.keyval == Gdk.KEY_T):
+            # shift -> copy
+            self.insert_next_page(True)
+        elif (ctrl and shift and event.keyval == Gdk.KEY_N):
             self.insert_next_page()
         elif ctrl and shift and event.keyval == Gdk.KEY_P:
             self.insert_previous_page()
@@ -481,7 +496,9 @@ class TransparentWindow(Gtk.Window):
             self.next_page()
         elif ctrl and event.keyval == Gdk.KEY_p:
             self.previous_page()
-        elif ctrl and event.keyval == Gdk.KEY_t:
+        elif ctrl and event.keyval == Gdk.KEY_w:
+            self.delete_current_page()
+        elif ctrl and event.keyval == Gdk.KEY_o:
             self.transparent = not self.transparent
             self.redraw()
         else:
