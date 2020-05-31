@@ -728,7 +728,7 @@ if __name__ == "__main__":
             FONT_NAME = "meiryo"
     geometry = None
     if args.geometry:
-        m = re.match(r"(\d+)x(\d+)(+(\d+))(+(\d+))", args.geometry)
+        m = re.match(r"(\d+)x(\d+)(\+(\d+))?(\+(\d+))?", args.geometry)
         if m is not None:
             geometry = (int(m.group(1)),
                         int(m.group(2)),
