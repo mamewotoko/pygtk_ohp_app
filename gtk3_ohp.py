@@ -214,6 +214,7 @@ class TransparentWindow(Gtk.Window):
                  transparent=True,
                  foregrond_color=(0, 1, 0),
                  background_color=(1, 1, 1),
+                 background_image=None,
                  line_width=5,
                  font_size=DEFAULT_FONT_SIZE,
                  title=APP_DEFAULT_TITLE,
@@ -229,6 +230,8 @@ class TransparentWindow(Gtk.Window):
         self.page_filename_list = []
         self.foregrond_color = foregrond_color
         self.background_color = background_color
+        self.background_image = background_image
+        self.background_image_pixbuf = GdkPixbuf.Pixbuf.new_from_file(self.background_image)
         self.line_width = line_width
         self.font_size = font_size
         self.title = title
@@ -557,7 +560,6 @@ class TransparentWindow(Gtk.Window):
                 pixbuf = shape_info["image"]
                 Gdk.cairo_set_source_pixbuf(cr, pixbuf, x, y)
                 cr.paint()
-                # cr.fill()
             elif shape_type == "line":
                 points = shape_info["points"]
                 color = shape_info["color"]
@@ -582,10 +584,17 @@ class TransparentWindow(Gtk.Window):
 
     def on_draw(self, wid, cr):
         # TODO: reduce operation
-        if not self.transparent:
-            cr.set_source_rgba(*self.background_color)
-            cr.rectangle(0, 0, self.width, self.height)
-            cr.fill()
+        if self.background_image_pixbuf is not None:
+            Gdk.cairo_set_source_pixbuf(cr,
+                                        self.background_image_pixbuf,
+                                        0,
+                                        0)
+            cr.paint()
+        else:
+            if not self.transparent:
+                cr.set_source_rgba(*self.background_color)
+                cr.rectangle(0, 0, self.width, self.height)
+                cr.fill()
 
         self.draw_shapes(wid, cr, self.get_current_shapes())
 
@@ -702,6 +711,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--foreground-color", type=str, default="0,1,0")
     parser.add_argument("--background-color", type=str, default="1,1,1")
+    parser.add_argument("--background-image", type=str, default=None)
     parser.add_argument("--line-width", type=float, default=4.0)
     parser.add_argument("--font", type=str, default=None)
     parser.add_argument("-o", "--output", type=str, default="ohp.svg")
@@ -755,6 +765,7 @@ if __name__ == "__main__":
                       transparent=not args.opaque,
                       foregrond_color=foreground_color,
                       background_color=(1, 1, 1),
+                      background_image=args.background_image,
                       line_width=line_width,
                       title=args.title,
                       font_size=DEFAULT_FONT_SIZE,
