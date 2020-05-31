@@ -98,7 +98,6 @@ class TransparentWindow(Gtk.Window):
                                                      float(m.group(4)),
                                                      float(m.group(5)),
                                                      float(m.group(6)))
-                        print(transform)
                         transform = transform.multiply(transform_new)
                 self.visit(child, transform, result)
             elif child.tag == "{http://www.w3.org/2000/svg}polyline":
@@ -174,7 +173,6 @@ class TransparentWindow(Gtk.Window):
         else:
             shapes = []
         self.page_index += 1
-        print("insert_next_page {} {}".format(overwrap, self.page_index))
         self.page_filename_list.insert(self.page_index,
                                        uuid.uuid4().hex + ".svg")
         self.pages.insert(self.page_index, shapes)
@@ -196,6 +194,10 @@ class TransparentWindow(Gtk.Window):
     def next_page(self):
         self.page_index += 1
         self.page_index = self.page_index % len(self.pages)
+        self.redraw()
+
+    def move_page(self, new_page):
+        self.page_index = new_page % len(self.pages)
         self.redraw()
 
     def previous_page(self):
@@ -343,13 +345,12 @@ class TransparentWindow(Gtk.Window):
     def start_websocket(self):
         def run(*args):
             try:
-                print("thread run")
                 self.websock_running = True
                 self.websock.run_forever()
             except Exception:
                 print(traceback.format_exc())
             finally:
-                print("websock finished")
+                print("websock thread finished")
                 self.websock_running = False
         if not self.websock_running:
             thread.start_new_thread(run, ())
@@ -436,9 +437,10 @@ class TransparentWindow(Gtk.Window):
             (event.state & Gdk.ModifierType.SHIFT_MASK)
             == Gdk.ModifierType.SHIFT_MASK
         )
+        # print(event.keyval)
+        # print(Gdk.keyval_name(event.keyval))
+        keyval_name = Gdk.keyval_name(event.keyval)
         shapes = self.get_current_shapes()
-        print(event.keyval)
-        print(Gdk.KEY_plus)
         if ctrl and event.keyval == Gdk.KEY_q:
             # TODO: ask save data or not
             Gtk.main_quit()
@@ -499,15 +501,22 @@ class TransparentWindow(Gtk.Window):
             self.insert_next_page()
         elif ctrl and shift and event.keyval == Gdk.KEY_P:
             self.insert_previous_page()
-        elif ctrl and event.keyval == Gdk.KEY_n:
-            self.next_page()
-        elif ctrl and event.keyval == Gdk.KEY_p:
+        elif ctrl and (event.keyval == Gdk.KEY_p
+                       or keyval_name == "ISO_Left_Tab"):
             self.previous_page()
+        elif ctrl and (event.keyval == Gdk.KEY_n
+                       or event.keyval == Gdk.KEY_Tab):
+            self.next_page()
         elif ctrl and event.keyval == Gdk.KEY_w:
             self.delete_current_page()
         elif ctrl and event.keyval == Gdk.KEY_o:
             self.transparent = not self.transparent
             self.redraw()
+        elif ctrl and event.keyval in range(ord("1"), ord("8")):
+            self.move_page(event.keyval - ord("1"))
+        elif ctrl and event.keyval == ord("9"):
+            # last page
+            self.move_page(len(self.pages)-1)
         else:
             color_name = KEY2COLOR_NAME.get(event.keyval)
             if color_name is not None:
@@ -712,10 +721,10 @@ def int_or_zero(s):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--foreground-color", type=str, default="0,1,0")
+    parser.add_argument("--foreground-color", type=str, default="0.8,0.8,0.8")
     parser.add_argument("--background-color", type=str, default="1,1,1")
     parser.add_argument("--background-image", type=str, default=None)
-    parser.add_argument("--line-width", type=float, default=4.0)
+    parser.add_argument("--line-width", type=float, default=8.0)
     parser.add_argument("--font", type=str, default=None)
     parser.add_argument("-o", "--output", type=str, default="ohp.svg")
     parser.add_argument("-s", "--socket", type=str, default=None)
