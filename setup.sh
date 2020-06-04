@@ -11,7 +11,6 @@ if [ "$UNAME" = Darwin ]; then
     # pkg-config is installed
     # brew install pkg-config
     brew install gtk+3 python3
-    brew link python3 || true
     python3 -m pip install --user -r requirements.txt
     python3 -m pip install --user pygobject
 
