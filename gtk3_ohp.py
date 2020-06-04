@@ -117,9 +117,6 @@ class TransparentWindow(Gtk.Window):
                     stroke = child.attrib.get("stroke", "red")
                 font_size = int(child.attrib.get("font_size", str(DEFAULT_FONT_SIZE)))
                 color = self.to_color(stroke)
-                t = ET.tostring(child,
-                                encoding="utf-8",
-                                method="text").decode("utf-8")
                 text = ET.tostring(child,
                                    encoding="utf-8",
                                    method="xml").decode("utf-8")
