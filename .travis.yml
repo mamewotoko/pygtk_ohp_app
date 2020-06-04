@@ -17,7 +17,7 @@ before_install:
     case $TRAVIS_OS_NAME in
       macos)
         brew unlink python@2
-        brew link python3
+        brew link python
         ;;
       windows)
         [[ ! -f C:/tools/msys64/msys2_shell.cmd ]] && rm -rf C:/tools/msys64
