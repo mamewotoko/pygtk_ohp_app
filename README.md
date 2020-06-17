@@ -160,7 +160,8 @@ nページ目に移動|Ctrl-{数字キー} または　Command-{数字キー}
 
 ## 参考
 
-* [Bookmarklet版](https://mamewo.ddo.jp/bookmaklet_ohp.html)
+* [Bookmarklet版](https://mamewo.ddo.jp/bookmarklet_ohp.html)
+  * Web ページに落書きする
 
 ## ライセンス
 
