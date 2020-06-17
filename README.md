@@ -158,6 +158,10 @@ nページ目に移動|Ctrl-{数字キー} または　Command-{数字キー}
 
 * websocketでの共有機能を仕上げる
 
+## 参考
+
+* [Bookmarklet版](https://mamewo.ddo.jp/bookmaklet_ohp.html)
+
 ## ライセンス
 
 ```
