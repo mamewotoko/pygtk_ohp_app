@@ -3,13 +3,14 @@ set -ex
 
 UNAME="$(uname)"
 
-# TODO: venv?
-
+# TODO: use venv?
 if [ "$UNAME" = Darwin ]; then
+    # detail
+    # https://pygobject.readthedocs.io/en/latest/getting_started.html#macosx-getting-started
 #    brew update
-    #    brew install pygobject3
     # pkg-config is installed
     # brew install pkg-config
+    brew install pygobject3
     brew install gtk+3 python3
     python3 -m pip install --user -r requirements.txt
     python3 -m pip install --user pygobject
