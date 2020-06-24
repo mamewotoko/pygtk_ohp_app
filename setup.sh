@@ -45,6 +45,8 @@ elif [ -f /etc/redhat-release ] && grep "release 7" /etc/redhat-release; then
 elif [[ "$UNAME" == "MINGW64_NT"* ]]; then
     # msys2 on PC
     # no package were upgraded -> ignore
+    # workaround: https://github.com/msys2/MSYS2-packages/issues/2021
+    pacman -Sydd --noconfirm filesystem
     pacman -Syu --noconfirm || true
     pacman -Sy --noconfirm mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-gobject
     pacman -Sy --noconfirm mingw-w64-x86_64-python3-setuptools mingw-w64-x86_64-python3-pip
