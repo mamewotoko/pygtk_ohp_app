@@ -10,7 +10,7 @@ if [ "$UNAME" = Darwin ]; then
 #    brew update
     # pkg-config is installed
     # brew install pkg-config
-    brew install pygobject3
+    brew install pygobject3 libffi
     brew install gtk+3 python3
     python3 -m pip install --user -r requirements.txt
     python3 -m pip install --user pygobject
