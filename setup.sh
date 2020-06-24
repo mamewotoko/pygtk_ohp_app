@@ -10,7 +10,8 @@ if [ "$UNAME" = Darwin ]; then
 #    brew update
     # pkg-config is installed
     # brew install pkg-config
-    brew install pygobject3 libffi
+    brew reinstall libffi
+    brew install pygobject3
     brew install gtk+3 python3
     python3 -m pip install --user -r requirements.txt
     python3 -m pip install --user pygobject
@@ -46,6 +47,7 @@ elif [[ "$UNAME" == "MINGW64_NT"* ]]; then
     # msys2 on PC
     # no package were upgraded -> ignore
     # workaround: https://github.com/msys2/MSYS2-packages/issues/2021
+    pacman -Syu --noconfirm || true
     pacman -Sydd --noconfirm filesystem
     pacman -Syu --noconfirm || true
     pacman -Sy --noconfirm mingw-w64-x86_64-gtk3 mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-gobject
