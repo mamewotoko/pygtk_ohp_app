@@ -10,7 +10,9 @@ if [ "$UNAME" = Darwin ]; then
 #    brew update
     # pkg-config is installed
     # brew install pkg-config
-    brew reinstall libffi
+    # brew reinstall libffi
+    brew update
+    brew upgraade
     brew install pygobject3
     brew install gtk+3 python3
     python3 -m pip install --user -r requirements.txt
