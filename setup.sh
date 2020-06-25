@@ -7,12 +7,11 @@ UNAME="$(uname)"
 if [ "$UNAME" = Darwin ]; then
     # detail
     # https://pygobject.readthedocs.io/en/latest/getting_started.html#macosx-getting-started
-#    brew update
     # pkg-config is installed
     # brew install pkg-config
     # brew reinstall libffi
     brew update
-    brew upgraade
+    brew upgrade
     brew install pygobject3
     brew install gtk+3 python3
     python3 -m pip install --user -r requirements.txt
