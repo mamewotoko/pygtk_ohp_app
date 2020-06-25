@@ -33,6 +33,7 @@ from gi.repository import GLib  # noqa E402
 from gi.repository import GdkPixbuf  # noqa E402
 
 APP_DEFAULT_TITLE = "Gtk3 OHP"
+LINE_MARGIN = 4
 CLEAR_SHAPES_ON_MESSAGE = False
 # initial of color name should be different
 COLOR_KEYS = ["red", "navy", "green", "black", "pink", "yellow",
@@ -541,30 +542,33 @@ class TransparentWindow(Gtk.Window):
             shape_type = shape_info["type"]
             if shape_type == "text":
                 # text []()
-                text = shape_info["text"]
-                m = re.match(r"\[(.*)\]\((.*)\)", text)
-                if m is not None:
-                    display_text = m.group(1)
-                    url = m.group(2)
-                else:
-                    display_text = text
-                    url = None
-                color = shape_info["color"]
-                cr.set_source_rgb(*color)
-                cr.set_line_width(self.line_width)
-                font_size = shape_info.get("font_size", DEFAULT_FONT_SIZE)
-                cr.set_font_size(font_size)
-                if FONT_NAME is not None:
-                    cr.select_font_face(
-                        FONT_NAME, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL
-                    )
+                whole_text = shape_info["text"]
                 (x, y) = shape_info["position"]
+                for text in whole_text.split("\n"):
+                    m = re.match(r"\[(.*)\]\((.*)\)", text)
+                    if m is not None:
+                        display_text = m.group(1)
+                        url = m.group(2)
+                    else:
+                        display_text = text
+                        url = None
+                    color = shape_info["color"]
+                    cr.set_source_rgb(*color)
+                    cr.set_line_width(self.line_width)
+                    font_size = shape_info.get("font_size", DEFAULT_FONT_SIZE)
+                    cr.set_font_size(font_size)
+                    if FONT_NAME is not None:
+                        cr.select_font_face(
+                            FONT_NAME, cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL
+                        )
 
-                cr.move_to(x, y)
-                cr.show_text(display_text)
+                    if url is not None:
+                        self.link.append({"position": [x, y], "url": url})
 
-                if url is not None:
-                    self.link.append({"position": [x, y], "url": url})
+                    cr.move_to(x, y)
+                    cr.show_text(display_text)
+                    ext = cr.text_extents(display_text)
+                    y += ext.height + LINE_MARGIN
             elif shape_type == "image":
                 (x, y) = shape_info["position"]
                 pixbuf = shape_info["image"]
