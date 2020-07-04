@@ -9,7 +9,7 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 
 ![windows10](image/windows10.png)
 
-![ubuntu18.04](image/ubuntu1804.png) ![ubuntu20.04](image/ubuntu2004.png)
+![ubuntu18.04](image/ubuntu1804.png) ![ubuntu19.10](image/ubuntu1910.png) ![ubuntu20.04](image/ubuntu2004.png)
 
 ![Raspbian9](image/raspberrypi.png)
 
@@ -19,6 +19,7 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 * [Homebrew](https://brew.sh/index_ja) がインストールされたMac
 * Ubuntu (Linux)
   * [Ubuntu 18.04](https://www.ubuntulinux.jp/News/ubuntu1804)
+  * [Ubuntu 19.10](https://www.ubuntulinux.jp/News/ubuntu1910)
   * [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
 * [CentOS7](https://wiki.centos.org/Download)
 * [MSYS2](https://www.msys2.org/) がインストールされたWindows 10
