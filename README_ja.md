@@ -1,4 +1,4 @@
-![suke](icon/suke_icon.png) GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/mamewotoko/pygtk_ohp_app.svg?branch=master)](https://travis-ci.org/mamewotoko/pygtk_ohp_app) [![flake8](https://github.com/mamewotoko/pygtk_ohp_app/workflows/Python%20package/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions)
+![suke](data/icon/suke_icon.png) GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/mamewotoko/pygtk_ohp_app.svg?branch=master)](https://travis-ci.org/mamewotoko/pygtk_ohp_app) [![flake8](https://github.com/mamewotoko/pygtk_ohp_app/workflows/Python%20package/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions)
 =========================
 
 ## デモ
