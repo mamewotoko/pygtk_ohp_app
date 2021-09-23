@@ -1,4 +1,4 @@
-![suke](data/icon/suke_icon.png) GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/mamewotoko/pygtk_ohp_app.svg?branch=master)](https://travis-ci.org/mamewotoko/pygtk_ohp_app) [![flake8](https://github.com/mamewotoko/pygtk_ohp_app/workflows/Python%20package/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions)
+![suke](data/icon/suke_icon.png) pyskeban: GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/mamewotoko/pygtk_ohp_app.svg?branch=master)](https://travis-ci.org/mamewotoko/pygtk_ohp_app) [![flake8](https://github.com/mamewotoko/pygtk_ohp_app/workflows/Python%20package/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions)
 =========================
 
 ## デモ
@@ -158,7 +158,7 @@ nページ目に移動|Ctrl-{数字キー} または　Command-{数字キー}
 ## ライセンス
 
 ```
-   Copyright (C) 2020 Takashi Masuyama
+   Copyright (C) 2020-2021 Takashi Masuyama
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
