@@ -1,4 +1,8 @@
-![suke](data/icon/suke_icon.png) pysukeban (a.k.a. pygtk_ohp_app) [![Build Status](https://travis-ci.org/mamewotoko/pygtk_ohp_app.svg?branch=master)](https://travis-ci.org/mamewotoko/pygtk_ohp_app) [![flake8](https://github.com/mamewotoko/pygtk_ohp_app/workflows/Python%20package/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions)
+![suke](data/icon/suke_icon.png) pysukeban (a.k.a. pygtk_ohp_app) [![Build Status](https://travis-ci.org/mamewotoko/pygtk_ohp_app.svg?branch=master)](https://travis-ci.org/mamewotoko/pygtk_ohp_app)
+[![build_mac](https://github.com/mamewotoko/pygtk_ohp_app/actions/workflows/build_mac.yml/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions/workflows/build_mac.yml)
+[![build_win](https://github.com/mamewotoko/pygtk_ohp_app/actions/workflows/build_windows.yml/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions/workflows/build_windows.yml)
+[![build_linux](https://github.com/mamewotoko/pygtk_ohp_app/actions/workflows/build_linux.yml/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions/workflows/build_linux.yml)
+[![flake8](https://github.com/mamewotoko/pygtk_ohp_app/workflows/Python%20package/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions)
 =========================
 
 [日本語](README_ja.md)
