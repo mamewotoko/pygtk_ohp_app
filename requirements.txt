@@ -1,5 +1,0 @@
-wheel
-pgi
-pycairo
-svgwrite
-websocket-client
