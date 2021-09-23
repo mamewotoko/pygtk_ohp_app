@@ -1,3 +1,17 @@
+Metadata-Version: 2.1
+Name: pygtk-ohp-app
+Version: 0.0.1
+Summary: UNKNOWN
+Home-page: https://github.com/mamewotoko/pygtk_ohp_app
+Author: Takashi Masuyama
+Author-email: mamewotoko@gmail.com
+License: Apache2.0
+Project-URL: Bug Tracker, https://github.com/mamewotoko/pygtk_ohp_app/issues
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.6
+License-File: LICENSE
+
 ![suke](icon/suke_icon.png) GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/mamewotoko/pygtk_ohp_app.svg?branch=master)](https://travis-ci.org/mamewotoko/pygtk_ohp_app) [![flake8](https://github.com/mamewotoko/pygtk_ohp_app/workflows/Python%20package/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions)
 =========================
 
@@ -180,3 +194,5 @@ nページ目に移動|Ctrl-{数字キー} または　Command-{数字キー}
 ----
 Takashi Masuyama < mamewotoko@gmail.com >
 https://mamewo.ddo.jp/
+
+

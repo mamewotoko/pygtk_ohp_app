@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+bin/gtk3_ohp.py
+icon/pygtk_ohp_app.egg-info/PKG-INFO
+icon/pygtk_ohp_app.egg-info/SOURCES.txt
+icon/pygtk_ohp_app.egg-info/dependency_links.txt
+icon/pygtk_ohp_app.egg-info/requires.txt
+icon/pygtk_ohp_app.egg-info/top_level.txt
+icon/pygtk_ohp_app.egg-info/zip-safe
