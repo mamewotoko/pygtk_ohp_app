@@ -1,4 +1,4 @@
-name: flake8
+name: build_linux
 
 on: [push]
 

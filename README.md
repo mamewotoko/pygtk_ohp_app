@@ -1,11 +1,12 @@
-![suke](icon/suke_icon.png) GTK3でOHPシートのようなアプリ [![Build Status](https://travis-ci.org/mamewotoko/pygtk_ohp_app.svg?branch=master)](https://travis-ci.org/mamewotoko/pygtk_ohp_app) [![flake8](https://github.com/mamewotoko/pygtk_ohp_app/workflows/Python%20package/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions)
+![suke](icon/suke_icon.png) pysukeban (a.k.a. pygtk_ohp_app) [![Build Status](https://travis-ci.org/mamewotoko/pygtk_ohp_app.svg?branch=master)](https://travis-ci.org/mamewotoko/pygtk_ohp_app) [![flake8](https://github.com/mamewotoko/pygtk_ohp_app/workflows/Python%20package/badge.svg)](https://github.com/mamewotoko/pygtk_ohp_app/actions)
 =========================
 
-## デモ
+[日本語](README_ja.md)
 
-[![](http://img.youtube.com/vi/iN-biqblD2g/0.jpg)](http://www.youtube.com/watch?v=iN-biqblD2g "家にいよう")
+Demo
+-------
 
-Macの写真アプリの上にアプリを起動して文字を書いてみました。
+[![](http://img.youtube.com/vi/iN-biqblD2g/0.jpg)](http://www.youtube.com/watch?v=iN-biqblD2g "stay at home")
 
 ![windows10](image/windows10.png)
 
@@ -13,30 +14,32 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
 
 ![Raspbian9](image/raspberrypi.png)
 
-## 前提
-以下のいずれかを準備してください
+Platforms
+---------
 
-* [Homebrew](https://brew.sh/index_ja) がインストールされたMac
+pysukeban Runs on following environmnent.
+
+* [Homebrew](https://brew.sh/index_ja) installed Mac
 * Ubuntu (Linux)
   * [Ubuntu 18.04](https://www.ubuntulinux.jp/News/ubuntu1804)
   * [Ubuntu 19.10](https://www.ubuntulinux.jp/News/ubuntu1910)
   * [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
 * [CentOS7](https://wiki.centos.org/Download)
-* [MSYS2](https://www.msys2.org/) がインストールされたWindows 10
+* [MSYS2](https://www.msys2.org/) installed Window10 PC
 * [Raspbian Gnu/Linux 9 (Stretch)](http://downloads.raspberrypi.org/raspbian/images/)
 * [Raspbian Gnu/Linux 10 (Buster)](http://downloads.raspberrypi.org/raspbian/images/)
 
-## 使い方
-### 準備
-1. ターミナルを開いて、以下のコマンドを実行し、gtk+3などをインストールします。
+## How to use
+### Setup
+1. To install required libraries, open terminal and execute following command line.
 
-    ```
+    ```bash
     sh setup.sh
     ```
 
-### 追加の準備(raspberry piで実行する場合)
+### If you run on raspberry pi
 
-1. X11の設定ファイル `/etc/X11/vncserver-virtual.conf` に以下の設定を追加します。
+1. add X11 configuration. add following lines to `/etc/X11/vncserver-virtual.conf` file.
 
     ```
     Section "Extensions"
@@ -44,121 +47,86 @@ Macの写真アプリの上にアプリを起動して文字を書いてみま�
     EndSection
     ```
 
-2. raspberry piを再起動します。
+2. restart raspberry pi.
 
-    ```
+    ```bash
     sudo reboot
     ```
 
-3. 透明なウィンドウをサポートするためコマンドを実行します。
+3. Run following command on raspberry pi to support transparent window.
 
-    ```
+    ```bash
     xcompmgr -c &
     ```
 
-### 起動
+### Run
 
-1. 起動
+1. Run
 
-    ```
+    ```bash
     ./bin/gtk3_ohp.py
     ```
 
-赤枠の入った透明なWindowが画面いっぱいに出ます。この上にマウスドラッグで絵が描けます。
+A transparent window with red frame will be displayed. You can draw figure with your mouse or pen.
 
-### 操作方法
+### Operations
 
-#### キーバインド
+#### Key bindings
 
-* 基本
+* Basics
 
-操作|キー
+Operation|Key
 ---------------|----------
-元に戻す(undo)|Ctrl-z または Command-z
-元に戻した操作のやり直し(redo)|Ctrl-y または Command-y
-コピーした画像、テキストの貼り付け|Ctrl-v または Command-v
-全削除|Ctrl-d または Command-d
-高さを縮める、広げる|Ctrl-f または Command-f
+Undo|Ctrl-z, Command-z
+Redo|Ctrl-y, Command-y
+Paste image|Ctrl-v,  Command-v
+Delete all|Ctrl-d, Command-d
+Minimize, maximize window|Ctrl-f or Command-f
 
-* ページ操作
+* Page operations
 
-操作|キー
+Operation|Key
 ---------------|----------
-次のページを表示|Ctrl-n または　Command-n または Ctrl-tab または Command-tab
-前のページを表示|Ctrl-p または　Command-p または Ctrl-Shift-tab または Command-Shift-tab
-ひとつ後にページを追加|Ctrl-Shift-n または　Command-Shift-n または Ctrl-t または Command-t
-ひとつ前にページを追加|Ctrl-Shift-p または　Command-Shift-p
-nページ目に移動|Ctrl-{数字キー} または　Command-{数字キー}
+Next page|Ctrl-n<br>Command-n<br>Ctrl-tab<br>Command-tab
+Previous page|Ctrl-p<br>Command-p<br>Ctrl-Shift-tab<br>Command-Shift-tab
+Insert a page after|Ctrl-Shift-n<br>Command-Shift-n<br>Ctrl-t<br> Command-t
+Insert a page before|Ctrl-Shift-p<br>Command-Shift-p
+Move to Nth page|Ctrl-{0-9}, Command-{0-9}
 
-* テキスト、線の色変更
+* change current text, line color
 
-操作|キー
+Color|Key
 ---------------|----------
-レッド|Shift-r
-ネイビー|Shift-n
-グリーン|Shift-g
-ピンク|Shift-p
-ブラック|Shift-b
-ホワイト|Shift-w
-イエロー|Shift-y
-むらさき|Shift-m
-オレンジ|Shift-o
-アクア|Shift-a
+Red|Shift-r
+Navy|Shift-n
+Green|Shift-g
+Pink|Shift-p
+Black|Shift-b
+White|Shift-w
+Yellow|Shift-y
+Purple(Murasaki in Japanese)|Shift-m
+Orange|Shift-o
+Aqua|Shift-a
 
-1 - 9キーで線の太さ、文字の大きさを変更
+width of line and font size : 1 - 9 key
 
-#### 起動時のコマンドラインオプション
+#### Command line options
 
-* `--foreground-color` ペン、文字の色。 (0 - 1.0の値の三つ組。カンマ区切り。デフォルト `0,1,0` )
-* `--background-color` 背景色。 (0 - 1.0の値の三つ組。カンマ区切り。デフォルト `1,1,1` )
-* `--opaque` 背景色を塗る。指定しない場合は透明にする。
-* `--line-width` ペンの太さ。 (デフォルト `5`)
-* `--font` フォント名。
+* `--foreground-color` pen, text color (comma separated three values between 0 and 1.0. default `0,1,0`)
+* `--background-color` background color (comma separated three values between 0 and 1.0. default `1,1,1`)
+* `--opaque` use opaque background color. (default transparent)
+* `--line-width` width of pen (default `5`)
+* `--font` font name
 
-## Q&A
-### 用途は?
+## References
 
-* 資料を表示して、その上に手書きで線を引いたり、字を描きたい場合にお使いください。
-* 何かを下書きにして、落書きしたい時とかにもお使いください。
+* [Bookmarklet version](https://mamewo.ddo.jp/bookmarklet_ohp.html)
+  * Draw on Web pages
 
-### このアプリを起動中に後ろにあるアプリを操作したいのですが
-
-いったん最小化するかCtrl-Fを押して小さくしてなどして、マウス、キー操作をしてください。
-
-### なぜ GTK なんですか?
-
-ふと、やってみたくなったので。
-
-### 日本語の文字列を貼り付ける(Ctrl-v)とトウフ □ (placeholder glyph) が出るんですが
-
-`--font` オプションで日本語フォント名を設定してください。
-
-## TODO
-
-* 実行時に出る警告をなくす
-
-    ```
-    ./gtk3_ohp.py:55: DeprecationWarning: Gdk.Screen.get_width is deprecated
-    self.width = screen.get_width()
-    ./gtk3_ohp.py:56: DeprecationWarning: Gdk.Screen.get_height is deprecated
-    self.height = screen.get_height() - STATUS_BAR_HEIGHT
-    ```
-
-* UIの反応などの改善
-  * 線をマウスで書いていると、カクカクする
-  * 描画が重いような気がする
-
-* websocketでの共有機能
-
-## 参考
-
-* [Bookmarklet版](https://mamewo.ddo.jp/bookmarklet_ohp.html)
-  * Web ページに落書きする
-
-## ライセンス
+## Licenes
 
 ```
-   Copyright (C) 2020 Takashi Masuyama
+   Copyright (C) 2020-2021 Takashi Masuyama
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -172,10 +140,6 @@ nページ目に移動|Ctrl-{数字キー} または　Command-{数字キー}
    See the License for the specific language governing permissions and
    limitations under the License.
 ```
-
-付録: pythonでのパッケージング方法
-===============================
-* <https://packaging.python.org/tutorials/packaging-projects/>
 
 ----
 Takashi Masuyama < mamewotoko@gmail.com >
