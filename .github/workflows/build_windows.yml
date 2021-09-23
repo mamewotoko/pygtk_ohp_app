@@ -1,0 +1,25 @@
+name: flake8
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        ./setup.sh
+    - name: Lint with flake8
+      run: |
+        pip install flake8
+        # Pythonの構文エラーもしくは未定義の名前があればビルドを停止
+        flake8 . --count  --show-source --statistics
