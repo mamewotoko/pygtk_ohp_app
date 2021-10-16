@@ -23,15 +23,17 @@ Platforms
 
 pysukeban Runs on following environmnent.
 
-* [Homebrew](https://brew.sh/index_ja) installed Mac
+* Mac installed [Homebrew](https://brew.sh/index_ja)
 * Ubuntu (Linux)
   * [Ubuntu 18.04](https://www.ubuntulinux.jp/News/ubuntu1804)
   * [Ubuntu 19.10](https://www.ubuntulinux.jp/News/ubuntu1910)
   * [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
+  * [Ubuntu 21.10](https://releases.ubuntu.com/21.10/)
 * [CentOS7](https://wiki.centos.org/Download)
 * [MSYS2](https://www.msys2.org/) installed Window10 PC
 * [Raspbian Gnu/Linux 9 (Stretch)](http://downloads.raspberrypi.org/raspbian/images/)
 * [Raspbian Gnu/Linux 10 (Buster)](http://downloads.raspberrypi.org/raspbian/images/)
+* [Oracle Linux 8.4](https://yum.oracle.com/oracle-linux-downloads.html?source=:ow:o:p:nav:121620LinuxHero_jp&intcmp=:ow:o:p:nav:121620LinuxHero_jp)
 
 ## How to use
 ### Setup

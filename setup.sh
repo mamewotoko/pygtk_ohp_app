@@ -34,15 +34,16 @@ elif [ -f /etc/redhat-release ] && grep "release 7" /etc/redhat-release; then
     # http://morrey22.hatenablog.com/entry/2013/04/14/212837
     # sudo yum -y groups install "GNOME Desktop"
 
-# elif [ -f /etc/redhat-release ] && grep "release 8" /etc/redhat-release; then
-#     # redhat, centos8
-#     sudo yum install -y gcc cairo-devel \
-#          pkg-config python3-devel gtk3 python3-pip cairo-gobject-devel
-#     sudo python3 -m pip install PyGObject pycairo
-#     sudo python3 -m pip install -r requirements.txt
-#     # install x11
-#     # http://morrey22.hatenablog.com/entry/2013/04/14/212837
-#     # sudo yum -y groups install "GNOME Desktop"
+elif [ -f /etc/redhat-release ] && grep "release 8" /etc/redhat-release; then
+    # redhat, centos8, oracle linux 8.4
+    sudo yum install -y gcc cairo-devel \
+         pkg-config python3-devel gtk3 python3-pip cairo-gobject-devel
+    sudo python3 -m pip install --upgrade pip
+    sudo python3 -m pip install PyGObject pycairo
+    sudo python3 -m pip install .
+    # install x11
+    # http://morrey22.hatenablog.com/entry/2013/04/14/212837
+    # sudo yum -y groups install "GNOME Desktop"
 
 elif [[ "$UNAME" == "MINGW64_NT"* ]]; then
     # msys2 on PC
